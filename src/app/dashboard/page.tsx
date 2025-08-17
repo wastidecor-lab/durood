@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/dashboard/header";
 import { CollectiveCounter } from "@/components/dashboard/collective-counter";
 import { ZikrCounter } from "@/components/dashboard/zikr-counter";
-import { Leaderboard } from "@/components/dashboard/leaderboard";
 import { UserStats } from "@/components/dashboard/user-stats";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
   // Mock initial counts
@@ -15,6 +15,21 @@ export default function DashboardPage() {
     week: 875,
     allTime: 15320,
   });
+  const [leaderboardHtml, setLeaderboardHtml] = useState<string>('');
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
+
+  useEffect(() => {
+    fetch('/dashboard/leaderboard')
+      .then(res => res.text())
+      .then(html => {
+        setLeaderboardHtml(html);
+        setLoadingLeaderboard(false);
+      })
+      .catch(err => {
+        console.error('Failed to load leaderboard:', err);
+        setLoadingLeaderboard(false);
+      });
+  }, []);
 
   const handleCountUpdate = (newCount: number) => {
     const increment = newCount;
@@ -44,7 +59,16 @@ export default function DashboardPage() {
           <CollectiveCounter collectiveCount={collectiveCount} />
           <UserStats userStats={userStats} />
           <ZikrCounter onCountUpdate={handleCountUpdate} onTargetReached={handleTargetReached} />
-          <Leaderboard />
+          {loadingLeaderboard ? (
+            <div className="space-y-4">
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          ) : (
+            <div dangerouslySetInnerHTML={{ __html: leaderboardHtml }} />
+          )}
         </div>
       </main>
       <footer className="py-6 px-4 text-center text-sm text-muted-foreground">

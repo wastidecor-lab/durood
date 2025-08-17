@@ -2,6 +2,7 @@ import { Header } from "@/components/dashboard/header";
 import { CollectiveCounter } from "@/components/dashboard/collective-counter";
 import { ZikrCounter } from "@/components/dashboard/zikr-counter";
 import { Leaderboard } from "@/components/dashboard/leaderboard";
+import { UserStats } from "@/components/dashboard/user-stats";
 
 export default function DashboardPage() {
   return (
@@ -10,6 +11,7 @@ export default function DashboardPage() {
       <main className="flex flex-1 flex-col items-center gap-8 p-4 md:p-8">
         <div className="w-full max-w-4xl space-y-8">
           <CollectiveCounter />
+          <UserStats />
           <ZikrCounter />
           <Leaderboard />
         </div>

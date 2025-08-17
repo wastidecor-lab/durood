@@ -1,21 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Target } from "lucide-react";
+import { Target, Trophy } from "lucide-react";
+import Confetti from "react-confetti";
 
 export function ZikrCounter() {
   const [count, setCount] = useState(0);
   const [target, setTarget] = useState(100);
   const [newTarget, setNewTarget] = useState(target.toString());
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isTargetDialogOpen, setIsTargetDialogOpen] = useState(false);
+  const [isCongratsDialogOpen, setIsCongratsDialogOpen] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const handleIncrement = () => {
-    setCount((prevCount) => prevCount + 1);
+    const newCount = count + 1;
+    if (newCount >= target) {
+      setCount(newCount);
+      setIsCongratsDialogOpen(true);
+      setShowConfetti(true);
+    } else {
+      setCount(newCount);
+    }
     // Haptic feedback for a more tangible experience
     if (typeof window !== "undefined" && "vibrate" in navigator) {
       navigator.vibrate(50);
@@ -26,14 +36,30 @@ export function ZikrCounter() {
     const targetValue = parseInt(newTarget, 10);
     if (!isNaN(targetValue) && targetValue > 0) {
       setTarget(targetValue);
+      setCount(0); // Reset count when new target is set
     }
-    setIsDialogOpen(false);
+    setIsTargetDialogOpen(false);
+  };
+  
+  const handleCongratsDialogClose = () => {
+    setIsCongratsDialogOpen(false);
+    setShowConfetti(false);
+    setCount(0);
   };
 
   const progress = target > 0 ? (count / target) * 100 : 0;
+  
+  // A little effect for when confetti should stop
+  useEffect(() => {
+    if (showConfetti) {
+      const timer = setTimeout(() => setShowConfetti(false), 5000); // 5 seconds of confetti
+      return () => clearTimeout(timer);
+    }
+  }, [showConfetti]);
 
   return (
     <Card className="w-full shadow-lg border-2 border-primary">
+       {showConfetti && typeof window !== "undefined" && <Confetti width={window.innerWidth} height={window.innerHeight} />}
       <CardHeader className="items-center text-center">
         <CardTitle className="text-2xl font-headline">My Durood Count</CardTitle>
         <CardDescription>Press the button to increase your count. Your target today is {target.toLocaleString()}.</CardDescription>
@@ -63,7 +89,7 @@ export function ZikrCounter() {
             +
           </Button>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isTargetDialogOpen} onOpenChange={setIsTargetDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="icon" className="w-14 h-14 rounded-full shadow-lg">
                 <Target className="h-6 w-6" />
@@ -92,6 +118,22 @@ export function ZikrCounter() {
           </Dialog>
         </div>
       </CardContent>
+
+      <Dialog open={isCongratsDialogOpen} onOpenChange={handleCongratsDialogClose}>
+        <DialogContent>
+          <DialogHeader className="items-center text-center">
+            <Trophy className="h-16 w-16 text-yellow-500 mb-4" />
+            <DialogTitle className="text-3xl font-headline text-primary">Masha'Allah!</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 text-center">
+            <p className="text-lg">You have reached your target of {target.toLocaleString()} Durood.</p>
+            <p className="text-muted-foreground mt-2">May your efforts be accepted. Keep up the wonderful work!</p>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleCongratsDialogClose} className="w-full">Start New Count</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

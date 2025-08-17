@@ -9,7 +9,12 @@ import { Progress } from "@/components/ui/progress";
 import { Target, Trophy } from "lucide-react";
 import Confetti from "react-confetti";
 
-export function ZikrCounter() {
+interface ZikrCounterProps {
+  onCountUpdate: (newCount: number) => void;
+  onTargetReached: (lastCount: number) => void;
+}
+
+export function ZikrCounter({ onCountUpdate, onTargetReached }: ZikrCounterProps) {
   const [count, setCount] = useState(0);
   const [target, setTarget] = useState(100);
   const [newTarget, setNewTarget] = useState(target.toString());
@@ -21,10 +26,12 @@ export function ZikrCounter() {
     const newCount = count + 1;
     if (newCount >= target) {
       setCount(newCount);
+      onTargetReached(newCount);
       setIsCongratsDialogOpen(true);
       setShowConfetti(true);
     } else {
       setCount(newCount);
+      onCountUpdate(1); // Increment by 1
     }
     // Haptic feedback for a more tangible experience
     if (typeof window !== "undefined" && "vibrate" in navigator) {

@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users } from "lucide-react";
 
-export function CollectiveCounter() {
-  // This would be fetched from a real-time database
-  const collectiveCount = 1_234_567;
+interface CollectiveCounterProps {
+    collectiveCount: number;
+}
 
+export function CollectiveCounter({ collectiveCount }: CollectiveCounterProps) {
   return (
     <Card className="shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

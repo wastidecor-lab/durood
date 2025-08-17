@@ -1,14 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, History, TrendingUp } from "lucide-react";
 
-export function UserStats() {
-  // Mock data for user statistics
-  const userStats = {
-    today: 125,
-    week: 875,
-    allTime: 15320,
+interface UserStatsProps {
+  userStats: {
+    today: number;
+    week: number;
+    allTime: number;
   };
+}
 
+export function UserStats({ userStats }: UserStatsProps) {
   return (
     <div className="grid gap-4 md:grid-cols-3">
       <Card>

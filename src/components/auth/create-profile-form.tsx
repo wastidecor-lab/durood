@@ -4,6 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -22,16 +24,20 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   city: z.string().min(2, { message: "City must be at least 2 characters." }),
   whatsapp: z.string().min(10, { message: "Please enter a valid WhatsApp number." }),
+  profilePicture: z.any().optional(),
 });
 
 export function CreateProfileForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,6 +47,19 @@ export function CreateProfileForm() {
       whatsapp: "",
     },
   });
+  
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      form.setValue("profilePicture", file);
+    }
+  };
+
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
@@ -61,6 +80,35 @@ export function CreateProfileForm() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="flex flex-col items-center space-y-4">
+               <Avatar className="h-24 w-24">
+                  {previewImage ? (
+                    <AvatarImage src={previewImage} alt="Profile preview" />
+                  ) : (
+                     <AvatarImage src={`https://placehold.co/100x100.png`} alt="placeholder" data-ai-hint="profile avatar"/>
+                  )}
+                  <AvatarFallback>
+                    <User className="h-12 w-12" />
+                  </AvatarFallback>
+                </Avatar>
+                <FormField
+                  control={form.control}
+                  name="profilePicture"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          className="text-sm"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            </div>
             <FormField
               control={form.control}
               name="name"

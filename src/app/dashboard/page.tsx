@@ -15,7 +15,7 @@ import { isSameDay, isSameWeek, addMinutes } from 'date-fns';
 import { CommunityStats } from "@/components/dashboard/community-stats";
 import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
-import { Share2, Send } from "lucide-react";
+import { Share2, Send, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
@@ -43,6 +43,7 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [isSharing, setIsSharing] = useState(false);
+  const [isInviting, setIsInviting] = useState(false);
   const [currentUser, setCurrentUser] = useState<User>(defaultUser);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [leaderboardUsers, setLeaderboardUsers] = useState<User[]>([]);
@@ -52,6 +53,8 @@ export default function DashboardPage() {
   const [nextLeaderboardUpdate, setNextLeaderboardUpdate] = useState<Date | null>(null);
   
   const shareableRef = useRef<HTMLDivElement>(null);
+  const inviteRef = useRef<HTMLDivElement>(null);
+
 
   const getInitials = (name: string) => {
     if (!name) return "";
@@ -218,16 +221,14 @@ export default function DashboardPage() {
     if (!shareableRef.current) return;
     setIsSharing(true);
     
-    // Get the computed background color
     const computedBgColor = window.getComputedStyle(document.body).backgroundColor;
 
     try {
-        // Short delay to allow the DOM to update with the new sharing elements
         await new Promise(resolve => setTimeout(resolve, 100));
 
         const canvas = await html2canvas(shareableRef.current, {
             useCORS: true,
-            backgroundColor: computedBgColor, // Use the computed color
+            backgroundColor: computedBgColor,
             scale: 2,
         });
         const dataUrl = canvas.toDataURL('image/png');
@@ -254,55 +255,39 @@ export default function DashboardPage() {
   };
 
   const handleInvite = async () => {
-    const inviteMessage = `Join me on ZikrX, a community Durood counter app. Let's count our blessings together!\n\nZikrX میں میرے ساتھ شامل ہوں، ایک کمیونٹی درود کاؤنٹر ایپ۔ آئیے مل کر اپنی نعمتوں کو شمار کریں!\n\n${APP_URL}`;
-    const shareData = {
-      title: "Join me on ZikrX",
-      text: inviteMessage,
-      url: APP_URL,
-    };
+    if (!inviteRef.current) return;
+    setIsInviting(true);
 
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-        toast({
-          title: "Invitation Sent!",
-          description: "Thanks for sharing the app with your friends.",
+    const computedBgColor = window.getComputedStyle(document.body).backgroundColor;
+
+    try {
+        const canvas = await html2canvas(inviteRef.current, {
+            useCORS: true,
+            backgroundColor: computedBgColor,
+            scale: 2,
         });
-      } catch (error) {
-         if (error instanceof Error && (error.name === 'AbortError' || error.name === 'NotAllowedError')) {
-           // User cancelled the share sheet, this is expected behavior
-           toast({
+        const dataUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = "join-durood-community.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast({
+            title: "Invitation Saved!",
+            description: "Your invitation image has been saved to your downloads.",
+        });
+    } catch (error) {
+        console.error("Error creating invitation image:", error);
+        toast({
             variant: "destructive",
-            title: "Sharing Cancelled",
-            description: "You cancelled the invitation.",
-           });
-         } else {
-           console.error("Error sharing invitation:", error);
-           toast({
-            variant: "destructive",
-            title: "Sharing Failed",
-            description: "An unexpected error occurred. Please try again.",
-           });
-         }
-      }
-    } else {
-      // Fallback for browsers that don't support Web Share API
-      try {
-        await navigator.clipboard.writeText(inviteMessage);
-        toast({
-          title: "Invitation Copied!",
-          description: "The invite message has been copied to your clipboard. You can now paste it to share.",
+            title: "Invite Failed",
+            description: "Could not create the invitation image. Please try again.",
         });
-      } catch (error) {
-        console.error("Error copying to clipboard:", error);
-        toast({
-          variant: "destructive",
-          title: "Copy Failed",
-          description: "Could not copy the invitation message. Please try again.",
-        });
-      }
+    } finally {
+        setIsInviting(false);
     }
-  };
+};
 
 
   if (loading) {
@@ -343,9 +328,9 @@ export default function DashboardPage() {
                         <Share2 className="mr-2 h-4 w-4" />
                         {isSharing ? "Sharing..." : "Share Progress"}
                     </Button>
-                    <Button onClick={handleInvite} variant="default" size="sm">
+                    <Button onClick={handleInvite} disabled={isInviting} variant="default" size="sm">
                         <Send className="mr-2 h-4 w-4" />
-                        Invite Friends
+                        {isInviting ? "Inviting..." : "Invite Friends"}
                     </Button>
                  </div>
 
@@ -402,6 +387,36 @@ export default function DashboardPage() {
       <footer className="py-6 px-4 text-center text-sm text-muted-foreground">
         <p>&copy; {new Date().getFullYear()} Durood Community Counter. All rights reserved.</p>
       </footer>
+      
+      {/* Hidden Invitation Card for html2canvas */}
+      <div className="fixed top-0 left-0 w-full h-full opacity-0 pointer-events-none z-[-1]">
+        <div ref={inviteRef} className="p-8 bg-background" style={{ width: '600px' }}>
+             <Card className="shadow-2xl border-4 border-primary">
+                <CardHeader className="text-center items-center gap-4 py-8 bg-primary/10">
+                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-16 w-16 fill-primary">
+                        <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-88a8,8,0,0,1,8-8,56,56,0,0,1,56,56,8,8,0,0,1-16,0,40,40,0,0,0-40-40,8,8,0,0,1-8-8Z"></path>
+                     </svg>
+                    <CardTitle className="text-4xl font-headline text-primary">You're Invited!</CardTitle>
+                </CardHeader>
+                <CardContent className="p-8 text-center">
+                    <p className="text-lg text-foreground mb-4">
+                        Join our community on the <span className="font-bold text-primary">Durood Community Counter</span> app.
+                        Let's unite to send blessings and track our collective progress.
+                    </p>
+                     <p className="text-lg font-urdu text-foreground mb-6" dir="rtl">
+                        درود کمیونٹی کاؤنٹر ایپ پر ہماری کمیونٹی میں شامل ہوں۔ آئیے مل کر درود پاک پڑھیں اور اپنی اجتماعی ترقی کو ٹریک کریں۔
+                    </p>
+                    <Card className="bg-muted/50 p-4">
+                         <p className="text-sm text-muted-foreground">Join us at:</p>
+                         <p className="text-lg font-bold text-primary">{APP_URL}</p>
+                    </Card>
+                </CardContent>
+                <CardHeader className="text-center items-center gap-2 py-4">
+                     <CardDescription>Download the app and start counting today!</CardDescription>
+                </CardHeader>
+             </Card>
+        </div>
+      </div>
     </div>
   );
 }

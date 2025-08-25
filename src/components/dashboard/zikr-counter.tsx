@@ -1,14 +1,15 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Target, Trophy } from "lucide-react";
+import { Target, Trophy, ChevronsDown } from "lucide-react";
 import Confetti from "react-confetti";
+import { motion } from "framer-motion";
 
 interface ZikrCounterProps {
   onDailyCountUpdate: () => void;
@@ -16,6 +17,19 @@ interface ZikrCounterProps {
 }
 
 const BATCH_SIZE = 25;
+
+const SwipeIndicator = () => (
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="text-muted-foreground/50"
+        >
+            <ChevronsDown className="h-8 w-8" />
+        </motion.div>
+    </div>
+);
+
 
 export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterProps) {
   const [count, setCount] = useState(0);
@@ -25,8 +39,14 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
   const [isTargetDialogOpen, setIsTargetDialogOpen] = useState(false);
   const [isCongratsDialogOpen, setIsCongratsDialogOpen] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const touchStartY = useRef(0);
+  const isIncrementing = useRef(false);
 
   const handleIncrement = () => {
+    // Debounce to prevent multiple increments from a single swipe/scroll
+    if (isIncrementing.current) return;
+    isIncrementing.current = true;
+
     const newCount = count + 1;
     let newUncommittedCount = uncommittedCount + 1;
 
@@ -40,12 +60,10 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
 
     setUncommittedCount(newUncommittedCount);
 
-    // Haptic feedback for a more tangible experience
     if (typeof window !== "undefined" && "vibrate" in navigator) {
-      navigator.vibrate(50); // Short vibration for a single count
+      navigator.vibrate(50);
     }
 
-    // Check if the personal target is met AFTER committing any batches.
     if (newCount >= target) {
       if (newUncommittedCount > 0) {
           onBatchCommit(newUncommittedCount);
@@ -54,17 +72,22 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
       setIsCongratsDialogOpen(true);
       setShowConfetti(true);
        if (typeof window !== "undefined" && "vibrate" in navigator) {
-        navigator.vibrate([100, 30, 100, 30, 100]); // Longer vibration pattern for success
+        navigator.vibrate([100, 30, 100, 30, 100]);
       }
     }
+    
+    // Reset debounce flag
+    setTimeout(() => {
+        isIncrementing.current = false;
+    }, 100); // 100ms cooldown
   };
 
   const handleSetTarget = () => {
     const targetValue = parseInt(newTarget, 10);
     if (!isNaN(targetValue) && targetValue > 0) {
       setTarget(targetValue);
-      setCount(0); // Reset count when new target is set
-      setUncommittedCount(0); // Reset uncommitted count
+      setCount(0);
+      setUncommittedCount(0);
     }
     setIsTargetDialogOpen(false);
   };
@@ -76,33 +99,56 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
     setUncommittedCount(0);
   };
 
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (e.deltaY > 0) {
+      handleIncrement();
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    const touchEndY = e.changedTouches[0].clientY;
+    if (touchStartY.current > 0 && touchEndY > touchStartY.current + 10) { // Swipe down
+      handleIncrement();
+      touchStartY.current = 0; // Reset after swipe
+    }
+  };
+
   const progress = target > 0 ? (count / target) * 100 : 0;
   
-  // A little effect for when confetti should stop
   useEffect(() => {
     if (showConfetti) {
-      const timer = setTimeout(() => setShowConfetti(false), 5000); // 5 seconds of confetti
+      const timer = setTimeout(() => setShowConfetti(false), 5000);
       return () => clearTimeout(timer);
     }
   }, [showConfetti]);
 
   return (
-    <Card className="w-full shadow-lg border-2 border-primary">
+    <Card className="w-full shadow-lg border-2 border-primary overflow-hidden">
        {showConfetti && typeof window !== "undefined" && <Confetti width={window.innerWidth} height={window.innerHeight} />}
       <CardHeader className="items-center text-center">
         <CardTitle className="text-2xl font-headline">My Durood Count</CardTitle>
-        <CardDescription>Press the button to increase your count. Your target today is {target.toLocaleString()}.</CardDescription>
+        <CardDescription>Press the button or swipe down to count. Your target today is {target.toLocaleString()}.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center justify-center gap-6">
         
-        <div className="w-full max-w-sm space-y-4 text-center">
+        <div 
+            className="w-full max-w-sm h-48 rounded-lg relative flex flex-col items-center justify-center select-none cursor-grab active:cursor-grabbing"
+            onWheel={handleWheel}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+        >
+            <SwipeIndicator />
             <div 
-              className="text-7xl md:text-8xl font-bold font-headline text-primary"
+              className="text-7xl md:text-8xl font-bold font-headline text-primary z-10"
               style={{ textShadow: '2px 2px 8px hsl(var(--primary) / 0.2)' }}
             >
               {count.toLocaleString()}
             </div>
-            <div className="w-full max-w-xs mx-auto space-y-2">
+            <div className="w-full max-w-xs mx-auto space-y-2 z-10 mt-2">
                 <Progress value={progress} className="h-3" />
                 <div className="flex justify-between text-xs font-medium text-muted-foreground">
                     <span>{count.toLocaleString()}</span>
@@ -112,10 +158,10 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
         </div>
 
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 -mt-4">
           <Button
             onClick={handleIncrement}
-            className="w-32 h-32 md:w-36 md:h-36 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-5xl font-bold shadow-2xl transform active:scale-95 transition-transform flex items-center justify-center"
+            className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-5xl font-bold shadow-2xl transform active:scale-95 transition-transform flex items-center justify-center z-10"
             aria-label="Increment Zikr count"
           >
             +
@@ -123,7 +169,7 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
 
           <Dialog open={isTargetDialogOpen} onOpenChange={setIsTargetDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="icon" className="w-12 h-12 rounded-full shadow-lg">
+              <Button variant="outline" size="icon" className="w-12 h-12 rounded-full shadow-lg z-10">
                 <Target className="h-5 w-5" />
                 <span className="sr-only">Set Target</span>
               </Button>
@@ -157,7 +203,7 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
           <DialogHeader className="items-center text-center">
             <Trophy className="h-16 w-16 text-yellow-500 mb-4" />
             <DialogTitle className="text-3xl font-headline text-primary">Masha'Allah!</DialogTitle>
-          </DialogHeader>
+          </Header>
           <div className="py-4 text-center">
             <p className="text-lg">You have reached your target of {target.toLocaleString()} Durood.</p>
             <p className="text-muted-foreground mt-2">May your efforts be accepted. Keep up the wonderful work!</p>

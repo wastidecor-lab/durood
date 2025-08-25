@@ -30,7 +30,6 @@ const SwipeIndicator = () => (
     </div>
 );
 
-
 export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterProps) {
   const [count, setCount] = useState(0);
   const [uncommittedCount, setUncommittedCount] = useState(0);

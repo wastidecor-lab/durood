@@ -8,6 +8,7 @@ import type { User } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
+import { AdBanner } from '@/components/ads/ad-banner';
 
 interface LeaderboardProps {
   users: User[];
@@ -64,6 +65,9 @@ export function Leaderboard({ users, nextUpdateTime }: LeaderboardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="mb-4">
+            <AdBanner />
+        </div>
         <ScrollArea className="h-[300px] w-full">
           <Table>
             <TableHeader>

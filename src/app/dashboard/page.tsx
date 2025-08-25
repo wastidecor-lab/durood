@@ -217,11 +217,12 @@ export default function DashboardPage() {
   const handleShare = async () => {
     if (!shareableRef.current) return;
     setIsSharing(true);
-
+    
     // Get the computed background color
     const computedBgColor = window.getComputedStyle(document.body).backgroundColor;
 
     try {
+        // Short delay to allow the DOM to update with the new sharing elements
         await new Promise(resolve => setTimeout(resolve, 100));
 
         const canvas = await html2canvas(shareableRef.current, {
@@ -268,13 +269,21 @@ export default function DashboardPage() {
           description: "Thanks for sharing the app with your friends.",
         });
       } catch (error) {
-        console.error("Error sharing invitation:", error);
-        // This can happen if the user cancels the share sheet
-        toast({
-          variant: "destructive",
-          title: "Sharing Cancelled",
-          description: "You cancelled the invitation.",
-        });
+         if (error instanceof Error && (error.name === 'AbortError' || error.name === 'NotAllowedError')) {
+           // User cancelled the share sheet, this is expected behavior
+           toast({
+            variant: "destructive",
+            title: "Sharing Cancelled",
+            description: "You cancelled the invitation.",
+           });
+         } else {
+           console.error("Error sharing invitation:", error);
+           toast({
+            variant: "destructive",
+            title: "Sharing Failed",
+            description: "An unexpected error occurred. Please try again.",
+           });
+         }
       }
     } else {
       // Fallback for browsers that don't support Web Share API
@@ -367,7 +376,7 @@ export default function DashboardPage() {
                     </div>
                     
                     {isSharing && (
-                        <div className="text-center mt-8 pt-6 border-t-2 border-solid">
+                        <div className="text-center mt-8 pt-6 border-t-2 border-solid border-border">
                             <p className="text-lg font-semibold text-primary">Masha'Allah! May your efforts be accepted.</p>
                             <p className="font-urdu text-2xl mt-2 text-primary" dir="rtl">ماشاءالله! اللہ آپ کی کوششوں کو قبول فرمائے۔</p>
                         </div>

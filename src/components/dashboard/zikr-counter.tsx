@@ -91,7 +91,7 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
       </CardHeader>
       <CardContent className="flex flex-col items-center justify-center gap-6">
         
-        <div className="text-7xl md:text-8xl font-bold font-headline text-primary" style={{ textShadow: '2px 2px 8px hsl(var(--primary) / 0.2)' }}>
+        <div className="text-6xl sm:text-7xl md:text-8xl font-bold font-headline text-primary" style={{ textShadow: '2px 2px 8px hsl(var(--primary) / 0.2)' }}>
           {count.toLocaleString()}
         </div>
 
@@ -103,10 +103,10 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
             </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-center gap-4">
           <Button
             onClick={handleIncrement}
-            className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-5xl font-bold shadow-2xl transform active:scale-95 transition-transform flex items-center justify-center"
+            className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-4xl sm:text-5xl font-bold shadow-2xl transform active:scale-95 transition-transform flex items-center justify-center"
             aria-label="Increment Zikr count"
           >
             +
@@ -114,8 +114,8 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
 
           <Dialog open={isTargetDialogOpen} onOpenChange={setIsTargetDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="icon" className="w-12 h-12 rounded-full shadow-lg">
-                <Target className="h-5 w-5" />
+              <Button variant="outline" size="icon" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg">
+                <Target className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="sr-only">Set Target</span>
               </Button>
             </DialogTrigger>
@@ -140,7 +140,7 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
             </DialogContent>
           </Dialog>
         </div>
-        <p className="text-sm text-muted-foreground">Collective count updates after every {BATCH_SIZE} recitations.</p>
+        <p className="text-sm text-muted-foreground text-center">Collective count updates after every {BATCH_SIZE} recitations.</p>
       </CardContent>
 
       <Dialog open={isCongratsDialogOpen} onOpenChange={handleCongratsDialogClose}>

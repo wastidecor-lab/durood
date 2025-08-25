@@ -7,9 +7,11 @@ import { Crown, Medal, Award } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useState } from 'react';
+import { differenceInSeconds, format } from 'date-fns';
 
 interface LeaderboardProps {
   users: User[];
+  nextUpdateTime: Date | null;
 }
 
 const rankIcons = [
@@ -18,8 +20,9 @@ const rankIcons = [
   <Award key="3" className="h-6 w-6 text-amber-700" />,
 ];
 
-export function Leaderboard({ users }: LeaderboardProps) {
+export function Leaderboard({ users, nextUpdateTime }: LeaderboardProps) {
   const [displayUsers, setDisplayUsers] = useState<User[]>([]);
+  const [timeRemaining, setTimeRemaining] = useState("00:00");
   
   const getInitials = (name: string) => {
     if (!name) return "";
@@ -49,11 +52,38 @@ export function Leaderboard({ users }: LeaderboardProps) {
     }
   }, [users]);
 
+  useEffect(() => {
+    if (!nextUpdateTime) return;
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      const secondsLeft = differenceInSeconds(nextUpdateTime, now);
+
+      if (secondsLeft <= 0) {
+        setTimeRemaining("00:00");
+        clearInterval(interval);
+        // Optionally trigger a refresh here or wait for the parent component to handle it
+        return;
+      }
+
+      const minutes = Math.floor(secondsLeft / 60);
+      const seconds = secondsLeft % 60;
+      setTimeRemaining(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [nextUpdateTime]);
+
+
   return (
     <Card className="shadow-lg bg-accent/20">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-headline text-accent-foreground">Daily Top Readers</CardTitle>
-        <CardDescription className="text-accent-foreground/80">The leaderboard updates throughout the day (list refreshes every 60 mins). Keep up the great work!</CardDescription>
+        <CardDescription className="text-accent-foreground/80">
+            The leaderboard refreshes periodically. Keep up the great work!
+            <br />
+            Next update in: <span className="font-bold">{timeRemaining}</span>
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[300px] w-full">
@@ -62,6 +92,7 @@ export function Leaderboard({ users }: LeaderboardProps) {
               <TableRow>
                 <TableHead className="w-[50px] text-center">Rank</TableHead>
                 <TableHead>User</TableHead>
+                <TableHead>City</TableHead>
                 <TableHead className="text-right">Today's Count</TableHead>
               </TableRow>
             </TableHeader>
@@ -80,6 +111,7 @@ export function Leaderboard({ users }: LeaderboardProps) {
                       <span>{user.name}</span>
                     </div>
                   </TableCell>
+                  <TableCell>{user.city}</TableCell>
                   <TableCell className="text-right text-lg font-bold font-headline">{(user.stats?.today ?? 0).toLocaleString()}</TableCell>
                 </TableRow>
               ))}

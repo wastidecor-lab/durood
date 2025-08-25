@@ -10,7 +10,7 @@ import { UserStats } from "@/components/dashboard/user-stats";
 import { Leaderboard } from "@/components/dashboard/leaderboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { User } from "@/lib/types";
-import { isSameDay, isSameWeek, startOfWeek } from 'date-fns';
+import { isSameDay, isSameWeek, startOfWeek, addMinutes, differenceInSeconds } from 'date-fns';
 import { CommunityStats } from "@/components/dashboard/community-stats";
 
 const defaultUser: User = {
@@ -27,6 +27,8 @@ const defaultUser: User = {
   lastUpdated: new Date().toISOString(),
 };
 
+const LEADERBOARD_UPDATE_INTERVAL = 60 * 60 * 1000; // 60 minutes in milliseconds
+
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -36,12 +38,15 @@ export default function DashboardPage() {
   const [collectiveAllTimeCount, setCollectiveAllTimeCount] = useState(0);
   const [currentDate, setCurrentDate] = useState("");
   const [usersActiveToday, setUsersActiveToday] = useState(0);
+  const [nextLeaderboardUpdate, setNextLeaderboardUpdate] = useState<Date | null>(null);
 
   const updateLeaderboard = useCallback((users: User[]) => {
     // Sort by today's count to determine rank
     const sortedUsers = [...users].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
     setLeaderboardUsers(sortedUsers);
-    localStorage.setItem('leaderboardLastUpdated', new Date().toISOString());
+    const now = new Date();
+    localStorage.setItem('leaderboardLastUpdated', now.toISOString());
+    setNextLeaderboardUpdate(addMinutes(now, 60));
   }, []);
 
   useEffect(() => {
@@ -98,14 +103,16 @@ export default function DashboardPage() {
     setUsersActiveToday(activeTodayCount);
     
     // Leaderboard logic - only update every 60 minutes
-    const lastLeaderboardUpdate = localStorage.getItem('leaderboardLastUpdated');
-    const sixtyMinutes = 60 * 60 * 1000;
-    if (!lastLeaderboardUpdate || (new Date().getTime() - new Date(lastLeaderboardUpdate).getTime() > sixtyMinutes)) {
+    const lastLeaderboardUpdateStr = localStorage.getItem('leaderboardLastUpdated');
+    const lastLeaderboardUpdate = lastLeaderboardUpdateStr ? new Date(lastLeaderboardUpdateStr) : null;
+    
+    if (!lastLeaderboardUpdate || (new Date().getTime() - lastLeaderboardUpdate.getTime() > LEADERBOARD_UPDATE_INTERVAL)) {
       updateLeaderboard(storedUsers);
     } else {
       // Load the previously stored leaderboard state
       const storedLeaderboardUsers = JSON.parse(localStorage.getItem("leaderboardUsers") || "[]");
       setLeaderboardUsers(storedLeaderboardUsers);
+      setNextLeaderboardUpdate(addMinutes(lastLeaderboardUpdate, 60));
     }
 
     setLoading(false);
@@ -119,19 +126,19 @@ export default function DashboardPage() {
         ? allUsers.map(u => u.email === currentUser.email ? currentUser : u)
         : [...allUsers, currentUser];
       
-      const newAllUsers = updatedUsers;
+      setAllUsers(updatedUsers);
 
       // Remove profile picture before saving to avoid quota issues
-      const usersToSave = newAllUsers.map(({ profilePicture, ...rest }) => rest);
+      const usersToSave = updatedUsers.map(({ profilePicture, ...rest }) => rest);
       localStorage.setItem("users", JSON.stringify(usersToSave));
       localStorage.setItem("collectiveAllTimeCount", collectiveAllTimeCount.toString());
 
       // Recalculate active users today accurately
       const today = new Date();
-      const activeTodayCount = newAllUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
+      const activeTodayCount = updatedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
       setUsersActiveToday(activeTodayCount);
     }
-  }, [allUsers, collectiveAllTimeCount, currentUser, loading]);
+  }, [collectiveAllTimeCount, currentUser, loading]);
 
 
   const handleDailyCountUpdate = () => {
@@ -144,7 +151,8 @@ export default function DashboardPage() {
         },
         lastUpdated: new Date().toISOString(),
       };
-      // Instantly update the allUsers array with the latest daily count for the leaderboard
+      
+      // Update allUsers in real-time for immediate personal feedback, but leaderboard uses its own state
       setAllUsers(prevAllUsers => {
           const userExists = prevAllUsers.some(u => u.email === updatedUser.email);
           if (userExists) {
@@ -152,6 +160,7 @@ export default function DashboardPage() {
           }
           return [...prevAllUsers, updatedUser];
       });
+
       return updatedUser;
     });
   };
@@ -170,9 +179,9 @@ export default function DashboardPage() {
      }));
      
      // Leaderboard update check
-     const lastUpdated = localStorage.getItem('leaderboardLastUpdated');
-     const sixtyMinutes = 60 * 60 * 1000;
-     if (!lastUpdated || (new Date().getTime() - new Date(lastUpdated).getTime() > sixtyMinutes)) {
+     const lastUpdatedStr = localStorage.getItem('leaderboardLastUpdated');
+     const lastUpdated = lastUpdatedStr ? new Date(lastUpdatedStr) : null;
+     if (!lastUpdated || (new Date().getTime() - lastUpdated.getTime() > LEADERBOARD_UPDATE_INTERVAL)) {
         updateLeaderboard(allUsers);
      }
   }
@@ -217,7 +226,7 @@ export default function DashboardPage() {
         <div className="w-full max-w-4xl space-y-8 mt-8">
           <CollectiveCounter collectiveCount={collectiveAllTimeCount} />
           <CommunityStats totalUsers={allUsers.length} activeUsersToday={usersActiveToday} />
-          <Leaderboard users={leaderboardUsers} />
+          <Leaderboard users={leaderboardUsers} nextUpdateTime={nextLeaderboardUpdate} />
         </div>
       </main>
       <footer className="py-6 px-4 text-center text-sm text-muted-foreground">

@@ -144,22 +144,28 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (loading) return;
-    
-    const updatedUsers = allUsers.map(u => u.email === currentUser.email ? currentUser : u);
-    const userExists = updatedUsers.some(u => u.email === currentUser.email);
-    if (!userExists) {
-      updatedUsers.push(currentUser);
+
+    let userToUpdate = allUsers.find(u => u.email === currentUser.email);
+    let updatedUsersList = allUsers;
+
+    if (userToUpdate) {
+        // Create a new object for the updated user to ensure state change detection
+        const updatedUser = { ...userToUpdate, ...currentUser };
+        updatedUsersList = allUsers.map(u => u.email === currentUser.email ? updatedUser : u);
+    } else if (currentUser.email !== 'anonymous@example.com') {
+        updatedUsersList = [...allUsers, currentUser];
     }
     
-    const usersToSave = updatedUsers.map(({ profilePicture, ...rest }) => rest);
+    const usersToSave = updatedUsersList.map(({ profilePicture, ...rest }) => rest);
     localStorage.setItem("users", JSON.stringify(usersToSave));
     localStorage.setItem("collectiveAllTimeCount", collectiveAllTimeCount.toString());
 
     const today = new Date();
-    const activeTodayCount = updatedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
+    const activeTodayCount = updatedUsersList.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
     setUsersActiveToday(activeTodayCount);
 
-  }, [currentUser, collectiveAllTimeCount, loading, allUsers]);
+  }, [currentUser, collectiveAllTimeCount, allUsers, loading]);
+
 
   const handleDailyCountUpdate = () => {
     setCurrentUser(prevUser => {
@@ -369,7 +375,7 @@ export default function DashboardPage() {
         </div>
       </main>
       <footer className="py-6 px-4 text-center text-sm text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} Durood Community Counter. All rights reserved.</p>
+        <p>© 2025 Professor Doctor Syed Zircon Shah All rights reserved.</p>
       </footer>
       
       {/* Hidden Invitation Card for html2canvas */}
@@ -413,5 +419,7 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
 
     

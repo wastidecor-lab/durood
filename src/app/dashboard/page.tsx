@@ -15,7 +15,7 @@ import { isSameDay, isSameWeek, addMinutes } from 'date-fns';
 import { CommunityStats } from "@/components/dashboard/community-stats";
 import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
-import { Share2 } from "lucide-react";
+import { Share2, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
@@ -36,6 +36,7 @@ const defaultUser: User = {
 };
 
 const LEADERBOARD_UPDATE_INTERVAL = 60 * 60 * 1000; // 60 minutes in milliseconds
+const APP_URL = "https://studio-eta-three.vercel.app";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -251,6 +252,49 @@ export default function DashboardPage() {
     }
   };
 
+  const handleInvite = async () => {
+    const inviteMessage = `Join me on ZikrX, a community Durood counter app. Let's count our blessings together!\n\nZikrX میں میرے ساتھ شامل ہوں، ایک کمیونٹی درود کاؤنٹر ایپ۔ آئیے مل کر اپنی نعمتوں کو شمار کریں!\n\n${APP_URL}`;
+    const shareData = {
+      title: "Join me on ZikrX",
+      text: inviteMessage,
+      url: APP_URL,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        toast({
+          title: "Invitation Sent!",
+          description: "Thanks for sharing the app with your friends.",
+        });
+      } catch (error) {
+        console.error("Error sharing invitation:", error);
+        // This can happen if the user cancels the share sheet
+        toast({
+          variant: "destructive",
+          title: "Sharing Cancelled",
+          description: "You cancelled the invitation.",
+        });
+      }
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      try {
+        await navigator.clipboard.writeText(inviteMessage);
+        toast({
+          title: "Invitation Copied!",
+          description: "The invite message has been copied to your clipboard. You can now paste it to share.",
+        });
+      } catch (error) {
+        console.error("Error copying to clipboard:", error);
+        toast({
+          variant: "destructive",
+          title: "Copy Failed",
+          description: "Could not copy the invitation message. Please try again.",
+        });
+      }
+    }
+  };
+
 
   if (loading) {
     return (
@@ -285,10 +329,14 @@ export default function DashboardPage() {
         {/* Shareable Card */}
         <div className="w-full max-w-4xl">
             <Card ref={shareableRef} className="bg-background shadow-lg p-4 sm:p-8 relative">
-                 <div className="absolute top-4 right-4 sm:top-8 sm:right-8" style={{ visibility: isSharing ? 'hidden' : 'visible' }}>
+                 <div className="absolute top-4 right-4 sm:top-8 sm:right-8 flex flex-col gap-2" style={{ visibility: isSharing ? 'hidden' : 'visible' }}>
                      <Button onClick={handleShare} disabled={isSharing} variant="outline" size="sm">
                         <Share2 className="mr-2 h-4 w-4" />
                         {isSharing ? "Sharing..." : "Share Progress"}
+                    </Button>
+                    <Button onClick={handleInvite} variant="default" size="sm">
+                        <Send className="mr-2 h-4 w-4" />
+                        Invite Friends
                     </Button>
                  </div>
 
@@ -348,5 +396,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

@@ -319,7 +319,7 @@ export default function DashboardPage() {
                     </div>
                     
                     {isSharing && (
-                        <div className="text-center mt-8 pt-6 border-t-2 border-dashed">
+                        <div className="text-center mt-8 pt-6 border-t-2 border-solid">
                             <p className="text-lg font-semibold text-primary">Masha'Allah! May your efforts be accepted.</p>
                             <p className="font-urdu text-2xl mt-2 text-primary" dir="rtl">ماشاءالله! اللہ آپ کی کوششوں کو قبول فرمائے۔</p>
                         </div>
@@ -348,3 +348,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

@@ -7,9 +7,9 @@ export function AdBanner() {
     <Card className="w-full border-dashed">
       <a href="https://google.com" target="_blank" rel="noopener noreferrer" className="block hover:opacity-90 transition-opacity">
         <CardContent className="p-2">
-            <div className="relative aspect-[3/1] w-full">
+            <div className="relative aspect-[6/1] w-full">
                  <Image
-                    src="https://placehold.co/900x300.png"
+                    src="https://placehold.co/900x150.png"
                     alt="Advertisement"
                     layout="fill"
                     objectFit="cover"

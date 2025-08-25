@@ -14,8 +14,11 @@ interface ZikrCounterProps {
   onTargetReached: (lastCount: number) => void;
 }
 
+const BATCH_SIZE = 25;
+
 export function ZikrCounter({ onCountUpdate, onTargetReached }: ZikrCounterProps) {
   const [count, setCount] = useState(0);
+  const [uncommittedCount, setUncommittedCount] = useState(0);
   const [target, setTarget] = useState(100);
   const [newTarget, setNewTarget] = useState(target.toString());
   const [isTargetDialogOpen, setIsTargetDialogOpen] = useState(false);
@@ -24,15 +27,30 @@ export function ZikrCounter({ onCountUpdate, onTargetReached }: ZikrCounterProps
 
   const handleIncrement = () => {
     const newCount = count + 1;
+    const newUncommittedCount = uncommittedCount + 1;
+
+    setCount(newCount);
+    onCountUpdate(1); // Update user's personal stats live
+
+    if (newUncommittedCount >= BATCH_SIZE) {
+      // Simulate sending batch to collective count
+      // In a real app, this would be a database write.
+      onTargetReached(newUncommittedCount); 
+      setUncommittedCount(0); // Reset after committing
+    } else {
+      setUncommittedCount(newUncommittedCount);
+    }
+    
     if (newCount >= target) {
-      setCount(newCount);
-      onTargetReached(newCount);
+      // Handle reaching the personal target
+      // Commit any remaining counts
+      if (uncommittedCount > 0) {
+        onTargetReached(uncommittedCount);
+      }
       setIsCongratsDialogOpen(true);
       setShowConfetti(true);
-    } else {
-      setCount(newCount);
-      onCountUpdate(1); // Increment by 1
-    }
+    } 
+
     // Haptic feedback for a more tangible experience
     if (typeof window !== "undefined" && "vibrate" in navigator) {
       navigator.vibrate(50);
@@ -44,6 +62,7 @@ export function ZikrCounter({ onCountUpdate, onTargetReached }: ZikrCounterProps
     if (!isNaN(targetValue) && targetValue > 0) {
       setTarget(targetValue);
       setCount(0); // Reset count when new target is set
+      setUncommittedCount(0); // Reset uncommitted count
     }
     setIsTargetDialogOpen(false);
   };
@@ -52,6 +71,7 @@ export function ZikrCounter({ onCountUpdate, onTargetReached }: ZikrCounterProps
     setIsCongratsDialogOpen(false);
     setShowConfetti(false);
     setCount(0);
+    setUncommittedCount(0);
   };
 
   const progress = target > 0 ? (count / target) * 100 : 0;
@@ -124,6 +144,7 @@ export function ZikrCounter({ onCountUpdate, onTargetReached }: ZikrCounterProps
             </DialogContent>
           </Dialog>
         </div>
+        <p className="text-sm text-muted-foreground">Collective count updates after every 25 recitations.</p>
       </CardContent>
 
       <Dialog open={isCongratsDialogOpen} onOpenChange={handleCongratsDialogClose}>

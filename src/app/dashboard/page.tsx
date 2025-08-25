@@ -31,24 +31,16 @@ export default function DashboardPage() {
       });
   }, []);
 
-  const handleCountUpdate = (newCount: number) => {
-    const increment = newCount;
+  const handleCountUpdate = (increment: number) => {
     setUserStats(prevStats => ({
       today: prevStats.today + increment,
       week: prevStats.week + increment,
       allTime: prevStats.allTime + increment,
     }));
-    setCollectiveCount(prevCount => prevCount + increment);
   };
   
-  const handleTargetReached = (lastCount: number) => {
-     const increment = lastCount;
-     setUserStats(prevStats => ({
-      today: prevStats.today + increment,
-      week: prevStats.week + increment,
-      allTime: prevStats.allTime + increment,
-    }));
-    setCollectiveCount(prevCount => prevCount + increment);
+  const handleBatchUpdate = (batchSize: number) => {
+     setCollectiveCount(prevCount => prevCount + batchSize);
   }
 
   return (
@@ -58,7 +50,7 @@ export default function DashboardPage() {
         <div className="w-full max-w-4xl space-y-8">
           <CollectiveCounter collectiveCount={collectiveCount} />
           <UserStats userStats={userStats} />
-          <ZikrCounter onCountUpdate={handleCountUpdate} onTargetReached={handleTargetReached} />
+          <ZikrCounter onCountUpdate={handleCountUpdate} onTargetReached={handleBatchUpdate} />
           {loadingLeaderboard ? (
             <div className="space-y-4">
               <Skeleton className="h-24 w-full" />

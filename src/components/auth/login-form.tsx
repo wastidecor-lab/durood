@@ -79,7 +79,7 @@ export function LoginForm() {
   return (
     <Card className="shadow-2xl">
       <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-headline text-primary">ZikarX</CardTitle>
+        <CardTitle className="text-3xl font-headline text-primary">Durood Community Counter</CardTitle>
         <CardDescription>Welcome back! Please log in to your account.</CardDescription>
       </CardHeader>
       <CardContent>

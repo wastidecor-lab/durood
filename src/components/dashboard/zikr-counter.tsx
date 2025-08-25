@@ -86,7 +86,7 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
     <Card className="w-full shadow-lg border-2 border-primary">
        {showConfetti && typeof window !== "undefined" && <Confetti width={window.innerWidth} height={window.innerHeight} />}
       <CardHeader className="items-center text-center">
-        <CardTitle className="text-2xl font-headline">My Zikr Count</CardTitle>
+        <CardTitle className="text-2xl font-headline">My Durood Count</CardTitle>
         <CardDescription>Press the button to increase your count. Your target today is {target.toLocaleString()}.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center justify-center gap-6">
@@ -107,7 +107,7 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
           <Button
             onClick={handleIncrement}
             className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-4xl sm:text-5xl font-bold shadow-2xl transform active:scale-95 transition-transform flex items-center justify-center"
-            aria-label="Increment Zikr count"
+            aria-label="Increment Durood count"
           >
             +
           </Button>
@@ -150,7 +150,7 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
             <DialogTitle className="text-3xl font-headline text-primary">Masha'Allah!</DialogTitle>
           </DialogHeader>
           <div className="py-4 text-center">
-            <p className="text-lg">You have reached your target of {target.toLocaleString()} Zikr.</p>
+            <p className="text-lg">You have reached your target of {target.toLocaleString()} Durood.</p>
             <p className="text-muted-foreground mt-2">May your efforts be accepted. Keep up the wonderful work!</p>
           </div>
           <DialogFooter>

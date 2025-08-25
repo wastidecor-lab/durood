@@ -22,7 +22,7 @@ const fontUrdu = Noto_Nastaliq_Urdu({
 
 
 export const metadata: Metadata = {
-  title: 'ZikarX',
+  title: 'Durood Community Counter',
   description: 'A platform to track your Zikr and connect with a community.',
 };
 

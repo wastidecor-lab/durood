@@ -23,3 +23,5 @@ export function CollectiveCounter({ collectiveCount }: CollectiveCounterProps) {
     </Card>
   );
 }
+
+    

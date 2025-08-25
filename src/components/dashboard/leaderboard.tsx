@@ -86,7 +86,7 @@ export function Leaderboard({ users, nextUpdateTime }: LeaderboardProps) {
                         <AvatarImage src={user.profilePicture || `https://placehold.co/100x100.png`} alt={user.name} data-ai-hint="leaderboard avatar"/>
                         <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
                       </Avatar>
-                      <span className="text-sm">{user.name}</span>
+                      <span className="text-sm truncate">{user.name}</span>
                     </div>
                   </TableCell>
                   <TableCell className="px-2 hidden sm:table-cell text-sm">{user.city}</TableCell>
@@ -100,3 +100,5 @@ export function Leaderboard({ users, nextUpdateTime }: LeaderboardProps) {
     </Card>
   );
 }
+
+    

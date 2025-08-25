@@ -140,7 +140,7 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
             </DialogContent>
           </Dialog>
         </div>
-        <p className="text-sm text-muted-foreground text-center">Collective count updates after every {BATCH_SIZE} recitations.</p>
+        <p className="text-sm text-muted-foreground text-center px-4">Collective count updates after every {BATCH_SIZE} recitations.</p>
       </CardContent>
 
       <Dialog open={isCongratsDialogOpen} onOpenChange={handleCongratsDialogClose}>
@@ -161,3 +161,5 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
     </Card>
   );
 }
+
+    

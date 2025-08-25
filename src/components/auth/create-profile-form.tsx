@@ -97,12 +97,12 @@ export function CreateProfileForm() {
 
     // Save the new user to the users array in localStorage
     const users: User[] = JSON.parse(localStorage.getItem("users") || "[]");
-    const usersToSave = users.filter(u => u.email !== newUser.email);
-    usersToSave.push(newUser);
+    const updatedUsers = [...users, newUser];
+
 
     try {
       // This is the main user list without profile pictures
-      localStorage.setItem("users", JSON.stringify(usersToSave));
+      localStorage.setItem("users", JSON.stringify(updatedUsers));
     } catch (error) {
        toast({
         variant: "destructive",

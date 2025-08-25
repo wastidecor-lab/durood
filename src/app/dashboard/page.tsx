@@ -35,7 +35,7 @@ const defaultUser: User = {
 };
 
 const LEADERBOARD_UPDATE_INTERVAL = 60 * 60 * 1000; // 60 minutes in milliseconds
-const APP_URL = "https://durood.vercel.app";
+const APP_URL = "https://studio-eta-three.vercel.app";
 
 export default function DashboardPage() {
   const router = useRouter();

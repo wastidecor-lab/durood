@@ -36,7 +36,7 @@ const defaultUser: User = {
 };
 
 const LEADERBOARD_UPDATE_INTERVAL = 60 * 60 * 1000; // 60 minutes in milliseconds
-const APP_URL = "https://studio-eta-three.vercel.app";
+const APP_URL = "https://durood.vercel.app";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -176,7 +176,7 @@ export default function DashboardPage() {
       const activeTodayCount = updatedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
       setUsersActiveToday(activeTodayCount);
     }
-  }, [collectiveAllTimeCount, currentUser, loading]);
+  }, [collectiveAllTimeCount, currentUser, loading, allUsers]);
 
 
   const handleDailyCountUpdate = () => {
@@ -322,8 +322,8 @@ export default function DashboardPage() {
 
         {/* Shareable Card */}
         <div className="w-full max-w-4xl">
-            <Card ref={shareableRef} className="bg-background shadow-lg p-4 sm:p-8 relative">
-                 <div className="absolute top-4 right-4 sm:top-8 sm:right-8 flex flex-col gap-2" style={{ visibility: isSharing ? 'hidden' : 'visible' }}>
+             <Card ref={shareableRef} className="bg-background shadow-lg p-4 sm:p-6 relative">
+                 <div className="absolute top-4 right-4 flex flex-col sm:flex-row gap-2" style={{ visibility: isSharing ? 'hidden' : 'visible' }}>
                      <Button onClick={handleShare} disabled={isSharing} variant="outline" size="sm">
                         <Share2 className="mr-2 h-4 w-4" />
                         {isSharing ? "Sharing..." : "Share Progress"}
@@ -334,7 +334,7 @@ export default function DashboardPage() {
                     </Button>
                  </div>
 
-                <CardHeader className="text-center p-0 mb-6">
+                <CardHeader className="text-center p-0 mb-6 pt-16 sm:pt-0">
                     <div className="flex flex-col items-center gap-2">
                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-8 w-8 fill-primary">
                            <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-88a8,8,0,0,1,8-8,56,56,0,0,1,56,56,8,8,0,0,1-16,0,40,40,0,0,0-40-40,8,8,0,0,1-8-8Z"></path>
@@ -349,7 +349,7 @@ export default function DashboardPage() {
                             <AvatarImage src={currentUser.profilePicture || `https://placehold.co/100x100.png`} alt={currentUser.name} data-ai-hint="profile avatar"/>
                             <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
                         </Avatar>
-                        <div>
+                        <div className="flex-1">
                             <h2 className="text-2xl font-bold font-headline">{currentUser.name}</h2>
                             <p className="text-muted-foreground">{currentDate}</p>
                         </div>

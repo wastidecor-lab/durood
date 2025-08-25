@@ -328,7 +328,7 @@ export default function DashboardPage() {
                           <Share2 className="mr-2 h-4 w-4" />
                           {isSharing ? "Sharing..." : "Share Progress"}
                       </Button>
-                      <Button onClick={handleInvite} disabled={isInviting} variant="default" size="sm" className="w-full sm:w-auto">
+                      <Button onClick={handleInvite} disabled={isInviting} variant="outline" size="sm" className="w-full sm:w-auto">
                           <Send className="mr-2 h-4 w-4" />
                           {isInviting ? "Inviting..." : "Invite Friends"}
                       </Button>

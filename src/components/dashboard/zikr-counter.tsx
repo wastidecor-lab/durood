@@ -27,29 +27,26 @@ export function ZikrCounter({ onCountUpdate, onTargetReached }: ZikrCounterProps
 
   const handleIncrement = () => {
     const newCount = count + 1;
-    const newUncommittedCount = uncommittedCount + 1;
+    let newUncommittedCount = uncommittedCount + 1;
 
     setCount(newCount);
     onCountUpdate(1); // Update user's personal stats live
 
-    if (newUncommittedCount >= BATCH_SIZE) {
-      // Simulate sending batch to collective count
-      // In a real app, this would be a database write.
-      onTargetReached(newUncommittedCount); 
-      setUncommittedCount(0); // Reset after committing
-    } else {
-      setUncommittedCount(newUncommittedCount);
-    }
-    
+    // Check if the personal target is met.
     if (newCount >= target) {
-      // Handle reaching the personal target
-      // Commit any remaining counts
-      if (uncommittedCount > 0) {
-        onTargetReached(uncommittedCount);
-      }
+      // If target is met, commit all uncommitted counts including the current one.
+      onTargetReached(newUncommittedCount);
+      setUncommittedCount(0); // Reset after committing.
       setIsCongratsDialogOpen(true);
       setShowConfetti(true);
-    } 
+    } else if (newUncommittedCount >= BATCH_SIZE) {
+      // If batch size is reached before the target, commit the batch.
+      onTargetReached(newUncommittedCount);
+      setUncommittedCount(0); // Reset after committing.
+    } else {
+      // Otherwise, just update the local uncommitted count.
+      setUncommittedCount(newUncommittedCount);
+    }
 
     // Haptic feedback for a more tangible experience
     if (typeof window !== "undefined" && "vibrate" in navigator) {

@@ -9,8 +9,8 @@ export function AdBanner() {
         <CardContent className="p-2">
             <div className="relative aspect-[6/1] w-full">
                  <Image
-                    src="https://placehold.co/900x150.png"
-                    alt="Advertisement"
+                    src="https://i.imgur.com/aBCdEfG.png"
+                    alt="Advertisement for Wasti Interior Decor"
                     layout="fill"
                     objectFit="cover"
                     className="rounded-md"

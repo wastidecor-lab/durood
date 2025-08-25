@@ -166,7 +166,7 @@ export default function DashboardPage() {
     const activeTodayCount = updatedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
     setUsersActiveToday(activeTodayCount);
 
-  }, [currentUser, collectiveAllTimeCount, loading, allUsers]);
+  }, [currentUser.stats, currentUser.lastUpdated, collectiveAllTimeCount]);
 
   const handleDailyCountUpdate = () => {
     setCurrentUser(prevUser => {
@@ -321,7 +321,7 @@ export default function DashboardPage() {
                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-6 w-6 sm:h-8 sm:w-8 fill-primary">
                          <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-88a8,8,0,0,1,8-8,56,56,0,0,1,56,56,8,8,0,0,1-16,0,40,40,0,0,0-40-40,8,8,0,0,1-8-8Z"></path>
                        </svg>
-                      <CardTitle className="text-base sm:text-xl font-headline text-primary">Durood Community Counter</CardTitle>
+                      <CardTitle className="text-base sm:text-xl font-headline text-foreground">Durood Community Counter</CardTitle>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto" style={{ visibility: isSharing ? 'hidden' : 'visible' }}>
                       <Button onClick={handleShare} disabled={isSharing} variant="outline" size="sm" className="w-full sm:w-auto">

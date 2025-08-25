@@ -44,7 +44,7 @@ export function Leaderboard({ users }: LeaderboardProps) {
     <Card className="shadow-lg bg-accent/20">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-headline text-accent-foreground">Daily Top Readers</CardTitle>
-        <CardDescription className="text-accent-foreground/80">The leaderboard is live and updates throughout the day (list refreshes every 60 mins). Keep up the great work!</CardDescription>
+        <CardDescription className="text-accent-foreground/80">The leaderboard updates throughout the day (list refreshes every 60 mins). Keep up the great work!</CardDescription>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[300px] w-full">

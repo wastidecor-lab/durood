@@ -174,10 +174,10 @@ export default function DashboardPage() {
       <main className="flex flex-1 flex-col items-center gap-8 p-4 md:p-8">
         <div className="w-full max-w-4xl space-y-8">
           <div className="text-center text-muted-foreground">{currentDate}</div>
-          <CollectiveCounter collectiveCount={collectiveAllTimeCount} />
-          <CommunityStats totalUsers={allUsers.length} liveUsers={allUsers.length} />
           <UserStats userStats={currentUser.stats!} />
           <ZikrCounter onCountUpdate={handleCountUpdate} onTargetReached={handleBatchUpdate} />
+          <CollectiveCounter collectiveCount={collectiveAllTimeCount} />
+          <CommunityStats totalUsers={allUsers.length} liveUsers={allUsers.length} />
           <Leaderboard users={leaderboardUsers} />
         </div>
       </main>

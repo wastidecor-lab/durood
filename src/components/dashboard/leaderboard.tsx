@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Crown, Medal, Award } from 'lucide-react';
 import type { User } from '@/lib/types';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface LeaderboardProps {
   users: User[];
@@ -22,43 +23,46 @@ export function Leaderboard({ users }: LeaderboardProps) {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
 
-  // Sort by today's count to determine rank, but will display all-time count
+  // Sort by today's count to determine rank
   const sortedUsers = [...users].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
-  const top3Users = sortedUsers.slice(0, 3);
 
   return (
     <Card className="shadow-lg bg-accent/20">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-headline text-accent-foreground">Daily Top Readers</CardTitle>
-        <CardDescription className="text-accent-foreground/80">The leaderboard is live and updates throughout the day. Keep up the great work!</CardDescription>
+        <CardDescription className="text-accent-foreground/80">The leaderboard is live and updates throughout the day (list refreshes every 60 mins). Keep up the great work!</CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[50px] text-center">Rank</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead className="text-right">Total Durood Count</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {top3Users.map((user, index) => (
-              <TableRow key={user.email} className="font-medium">
-                <TableCell className="text-center">{rankIcons[index]}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarImage src={user.profilePicture || `https://placehold.co/100x100.png`} alt={user.name} data-ai-hint="leaderboard avatar"/>
-                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                    </Avatar>
-                    <span>{user.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right text-lg font-bold font-headline">{(user.stats?.allTime ?? 0).toLocaleString()}</TableCell>
+        <ScrollArea className="h-[300px] w-full">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[50px] text-center">Rank</TableHead>
+                <TableHead>User</TableHead>
+                <TableHead className="text-right">Today's Count</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {sortedUsers.map((user, index) => (
+                <TableRow key={user.email} className="font-medium">
+                  <TableCell className="text-center">
+                    {index < 3 ? rankIcons[index] : <span className="font-bold">{index + 1}</span>}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={user.profilePicture || `https://placehold.co/100x100.png`} alt={user.name} data-ai-hint="leaderboard avatar"/>
+                        <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                      </Avatar>
+                      <span>{user.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right text-lg font-bold font-headline">{(user.stats?.today ?? 0).toLocaleString()}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollArea>
       </CardContent>
     </Card>
   );

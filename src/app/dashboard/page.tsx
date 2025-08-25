@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/dashboard/header";
 import { CollectiveCounter } from "@/components/dashboard/collective-counter";
@@ -10,6 +10,7 @@ import { Leaderboard } from "@/components/dashboard/leaderboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { User } from "@/lib/types";
 import { isSameDay, isSameWeek, startOfWeek } from 'date-fns';
+import { CommunityStats } from "@/components/dashboard/community-stats";
 
 const defaultUser: User = {
   name: "Anonymous",
@@ -30,8 +31,17 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<User>(defaultUser);
   const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [leaderboardUsers, setLeaderboardUsers] = useState<User[]>([]);
   const [collectiveAllTimeCount, setCollectiveAllTimeCount] = useState(0);
   const [currentDate, setCurrentDate] = useState("");
+
+  const updateLeaderboard = useCallback(() => {
+    const storedUsers: User[] = JSON.parse(localStorage.getItem("users") || "[]");
+    // Sort by today's count to determine rank
+    const sortedUsers = [...storedUsers].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
+    setLeaderboardUsers(sortedUsers);
+    localStorage.setItem('leaderboardLastUpdated', new Date().toISOString());
+  }, []);
 
   useEffect(() => {
     // Set date on client to avoid hydration mismatch
@@ -73,16 +83,27 @@ export default function DashboardPage() {
     setAllUsers(storedUsers);
     setCurrentUser(user);
     setCollectiveAllTimeCount(storedCollectiveCount);
+    
+    // Leaderboard logic
+    const lastUpdated = localStorage.getItem('leaderboardLastUpdated');
+    const sixtyMinutes = 60 * 60 * 1000;
+    if (!lastUpdated || (new Date().getTime() - new Date(lastUpdated).getTime() > sixtyMinutes)) {
+      updateLeaderboard();
+    } else {
+      setLeaderboardUsers(JSON.parse(localStorage.getItem('leaderboardUsers') || '[]'));
+    }
+
     setLoading(false);
-  }, [router]);
+  }, [router, updateLeaderboard]);
 
   useEffect(() => {
     if (!loading) {
       const updatedUsers = allUsers.map(u => u.email === currentUser.email ? currentUser : u);
       localStorage.setItem("users", JSON.stringify(updatedUsers));
       localStorage.setItem("collectiveAllTimeCount", collectiveAllTimeCount.toString());
+      localStorage.setItem("leaderboardUsers", JSON.stringify(leaderboardUsers));
     }
-  }, [allUsers, collectiveAllTimeCount, currentUser, loading]);
+  }, [allUsers, collectiveAllTimeCount, currentUser, loading, leaderboardUsers]);
 
   const handleCountUpdate = (increment: number): User => {
     const updatedUser: User = {
@@ -104,9 +125,15 @@ export default function DashboardPage() {
      // Ensure the user passed to setAllUsers has the absolute latest stats.
      setCurrentUser(updatedUser);
 
-     setAllUsers(prevAllUsers => 
-      prevAllUsers.map(u => u.email === updatedUser.email ? updatedUser : u)
-    );
+     const updatedAllUsers = allUsers.map(u => u.email === updatedUser.email ? updatedUser : u);
+     setAllUsers(updatedAllUsers);
+     
+     // Optionally refresh leaderboard here if you want it more live, or stick to the 60min rule
+     const lastUpdated = localStorage.getItem('leaderboardLastUpdated');
+     const sixtyMinutes = 60 * 60 * 1000;
+     if (!lastUpdated || (new Date().getTime() - new Date(lastUpdated).getTime() > sixtyMinutes)) {
+        updateLeaderboard();
+     }
   }
 
   if (loading) {
@@ -141,9 +168,10 @@ export default function DashboardPage() {
         <div className="w-full max-w-4xl space-y-8">
           <div className="text-center text-muted-foreground">{currentDate}</div>
           <CollectiveCounter collectiveCount={collectiveAllTimeCount} />
+          <CommunityStats totalUsers={allUsers.length} liveUsers={allUsers.length} />
           <UserStats userStats={currentUser.stats!} />
           <ZikrCounter onCountUpdate={handleCountUpdate} onTargetReached={handleBatchUpdate} />
-          <Leaderboard users={allUsers} />
+          <Leaderboard users={leaderboardUsers} />
         </div>
       </main>
       <footer className="py-6 px-4 text-center text-sm text-muted-foreground">

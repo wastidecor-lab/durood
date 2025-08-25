@@ -9,7 +9,7 @@ export function CollectiveCounter({ collectiveCount }: CollectiveCounterProps) {
   return (
     <Card className="shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-primary">
+        <CardTitle className="text-sm font-medium text-foreground">
             <span className="hidden sm:inline">Collective Durood Count (All Time)</span>
             <span className="inline sm:hidden">Collective Count</span>
         </CardTitle>

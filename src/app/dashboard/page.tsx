@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -35,10 +36,9 @@ export default function DashboardPage() {
   const [collectiveAllTimeCount, setCollectiveAllTimeCount] = useState(0);
   const [currentDate, setCurrentDate] = useState("");
 
-  const updateLeaderboard = useCallback(() => {
-    const storedUsers: User[] = JSON.parse(localStorage.getItem("users") || "[]");
+  const updateLeaderboard = useCallback((users: User[]) => {
     // Sort by today's count to determine rank
-    const sortedUsers = [...storedUsers].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
+    const sortedUsers = [...users].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
     setLeaderboardUsers(sortedUsers);
     localStorage.setItem('leaderboardLastUpdated', new Date().toISOString());
   }, []);
@@ -84,13 +84,15 @@ export default function DashboardPage() {
     setCurrentUser(user);
     setCollectiveAllTimeCount(storedCollectiveCount);
     
-    // Leaderboard logic
+    // Leaderboard logic - only update every 60 minutes
     const lastUpdated = localStorage.getItem('leaderboardLastUpdated');
     const sixtyMinutes = 60 * 60 * 1000;
     if (!lastUpdated || (new Date().getTime() - new Date(lastUpdated).getTime() > sixtyMinutes)) {
-      updateLeaderboard();
+      updateLeaderboard(storedUsers);
     } else {
-      setLeaderboardUsers(JSON.parse(localStorage.getItem('leaderboardUsers') || '[]'));
+      // Sort on load instead of getting from storage
+      const sortedUsers = [...storedUsers].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
+      setLeaderboardUsers(sortedUsers);
     }
 
     setLoading(false);
@@ -101,9 +103,9 @@ export default function DashboardPage() {
       const updatedUsers = allUsers.map(u => u.email === currentUser.email ? currentUser : u);
       localStorage.setItem("users", JSON.stringify(updatedUsers));
       localStorage.setItem("collectiveAllTimeCount", collectiveAllTimeCount.toString());
-      localStorage.setItem("leaderboardUsers", JSON.stringify(leaderboardUsers));
+      // No longer saving leaderboardUsers to localStorage
     }
-  }, [allUsers, collectiveAllTimeCount, currentUser, loading, leaderboardUsers]);
+  }, [allUsers, collectiveAllTimeCount, currentUser, loading]);
 
   const handleCountUpdate = (increment: number): User => {
     const updatedUser: User = {
@@ -116,6 +118,11 @@ export default function DashboardPage() {
       lastUpdated: new Date().toISOString(),
     };
     setCurrentUser(updatedUser);
+    
+    // Update allUsers state immediately for instant UI feedback on personal stats
+    const updatedAllUsers = allUsers.map(u => u.email === updatedUser.email ? updatedUser : u);
+    setAllUsers(updatedAllUsers);
+
     return updatedUser;
   };
   
@@ -132,7 +139,7 @@ export default function DashboardPage() {
      const lastUpdated = localStorage.getItem('leaderboardLastUpdated');
      const sixtyMinutes = 60 * 60 * 1000;
      if (!lastUpdated || (new Date().getTime() - new Date(lastUpdated).getTime() > sixtyMinutes)) {
-        updateLeaderboard();
+        updateLeaderboard(updatedAllUsers);
      }
   }
 

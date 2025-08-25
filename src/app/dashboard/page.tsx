@@ -94,15 +94,30 @@ export default function DashboardPage() {
 
     // Calculate users active today
     const today = new Date();
-    const activeToday = storedUsers.filter(u => u.lastUpdated && isSameDay(today, new Date(u.lastUpdated))).length;
-    // Ensure the current user is counted if they are new or just became active
-    const currentUserIsActive = user.lastUpdated && isSameDay(today, new Date(user.lastUpdated));
-    if (!storedUsers.find(u => u.email === user.email) && currentUserIsActive) {
-      setUsersActiveToday(activeToday + 1);
-    } else {
-      setUsersActiveToday(activeToday);
+    const activeToday = storedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
+    // Check if current user is active but not yet counted
+    const currentUserInStoredList = storedUsers.find(u=> u.email === user.email);
+    if(currentUserInStoredList && isSameDay(new Date(currentUserInStoredList.lastUpdated!), today)) {
+        setUsersActiveToday(activeToday);
+    } else if (!currentUserInStoredList) {
+        // new user signing in for the first time
+        setUsersActiveToday(activeToday + 1);
     }
-
+    else {
+        // existing user who has not been active today
+         const userIsNowActive = isSameDay(new Date(user.lastUpdated), today);
+         if(userIsNowActive){
+             const currentlyActive = storedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today));
+             const userAlreadyCounted = currentlyActive.some(activeUser => activeUser.email === user!.email);
+             if(!userAlreadyCounted){
+                 setUsersActiveToday(currentlyActive.length + 1);
+             } else {
+                 setUsersActiveToday(currentlyActive.length);
+             }
+         } else {
+            setUsersActiveToday(activeToday);
+         }
+    }
     
     // Leaderboard logic - only update every 60 minutes
     const lastUpdated = localStorage.getItem('leaderboardLastUpdated');
@@ -121,6 +136,11 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!loading) {
       const updatedUsers = allUsers.map(u => u.email === currentUser.email ? currentUser : u);
+      // Ensure the currentUser, if new, is included in allUsers for state consistency
+      if (!updatedUsers.find(u => u.email === currentUser.email)) {
+          updatedUsers.push(currentUser);
+      }
+
       // Remove profile picture before saving to avoid quota issues
       const usersToSave = updatedUsers.map(({ profilePicture, ...rest }) => rest);
       localStorage.setItem("users", JSON.stringify(usersToSave));
@@ -130,10 +150,10 @@ export default function DashboardPage() {
       const sortedUsers = [...updatedUsers].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
       setLeaderboardUsers(sortedUsers);
 
-      // Recalculate active users today
+      // Recalculate active users today accurately
       const today = new Date();
-      const activeToday = updatedUsers.filter(u => u.lastUpdated && isSameDay(today, new Date(u.lastUpdated))).length;
-      setUsersActiveToday(activeToday);
+      const activeTodayCount = updatedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
+      setUsersActiveToday(activeTodayCount);
     }
   }, [allUsers, collectiveAllTimeCount, currentUser, loading]);
 
@@ -151,8 +171,16 @@ export default function DashboardPage() {
     setCurrentUser(updatedUser);
     
     // Update allUsers state immediately for instant UI feedback on personal stats
-    const updatedAllUsers = allUsers.map(u => u.email === updatedUser.email ? updatedUser : u);
+    // Check if the user exists, if so update, if not add them
+    const userExists = allUsers.some(u => u.email === updatedUser.email);
+    let updatedAllUsers;
+    if (userExists) {
+        updatedAllUsers = allUsers.map(u => u.email === updatedUser.email ? updatedUser : u);
+    } else {
+        updatedAllUsers = [...allUsers, updatedUser];
+    }
     setAllUsers(updatedAllUsers);
+
 
     return updatedUser;
   };
@@ -163,7 +191,13 @@ export default function DashboardPage() {
      // Ensure the user passed to setAllUsers has the absolute latest stats.
      setCurrentUser(updatedUser);
 
-     const updatedAllUsers = allUsers.map(u => u.email === updatedUser.email ? updatedUser : u);
+     const userExists = allUsers.some(u => u.email === updatedUser.email);
+      let updatedAllUsers;
+      if (userExists) {
+          updatedAllUsers = allUsers.map(u => u.email === updatedUser.email ? updatedUser : u);
+      } else {
+          updatedAllUsers = [...allUsers, updatedUser];
+      }
      setAllUsers(updatedAllUsers);
      
      // Optionally refresh leaderboard here if you want it more live, or stick to the 60min rule
@@ -223,3 +257,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

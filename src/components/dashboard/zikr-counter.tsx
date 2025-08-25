@@ -8,16 +8,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Progress } from "@/components/ui/progress";
 import { Target, Trophy } from "lucide-react";
 import Confetti from "react-confetti";
-import type { User } from "@/lib/types";
 
 interface ZikrCounterProps {
-  onCountUpdate: (newCount: number) => User;
-  onTargetReached: (batchSize: number, updatedUser: User) => void;
+  onDailyCountUpdate: () => void;
+  onBatchCommit: (batchSize: number) => void;
 }
 
 const BATCH_SIZE = 25;
 
-export function ZikrCounter({ onCountUpdate, onTargetReached }: ZikrCounterProps) {
+export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterProps) {
   const [count, setCount] = useState(0);
   const [uncommittedCount, setUncommittedCount] = useState(0);
   const [target, setTarget] = useState(100);
@@ -31,23 +30,23 @@ export function ZikrCounter({ onCountUpdate, onTargetReached }: ZikrCounterProps
     let newUncommittedCount = uncommittedCount + 1;
 
     setCount(newCount);
-    // onCountUpdate now returns the *updated* user object
-    const updatedUser = onCountUpdate(1); 
+    onDailyCountUpdate(); 
 
-    // Check if the personal target is met.
+    if (newUncommittedCount >= BATCH_SIZE) {
+      onBatchCommit(newUncommittedCount);
+      newUncommittedCount = 0; // Reset after committing.
+    }
+
+    // Check if the personal target is met AFTER committing any batches.
     if (newCount >= target) {
-      // If target is met, commit all uncommitted counts including the current one.
-      // Pass the fully updated user object to the batch update function.
-      onTargetReached(newUncommittedCount, updatedUser);
+      if (newUncommittedCount > 0) {
+          onBatchCommit(newUncommittedCount);
+      }
       setUncommittedCount(0); // Reset after committing.
       setIsCongratsDialogOpen(true);
       setShowConfetti(true);
-    } else if (newUncommittedCount >= BATCH_SIZE) {
-      // If batch size is reached before the target, commit the batch.
-      onTargetReached(newUncommittedCount, updatedUser);
-      setUncommittedCount(0); // Reset after committing.
     } else {
-      // Otherwise, just update the local uncommitted count.
+       // Otherwise, just update the local uncommitted count.
       setUncommittedCount(newUncommittedCount);
     }
 

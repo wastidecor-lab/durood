@@ -94,31 +94,17 @@ export default function DashboardPage() {
 
     // Calculate users active today
     const today = new Date();
-    const activeToday = storedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
-    // Check if current user is active but not yet counted
-    const currentUserInStoredList = storedUsers.find(u=> u.email === user.email);
-    if(currentUserInStoredList && isSameDay(new Date(currentUserInStoredList.lastUpdated!), today)) {
-        setUsersActiveToday(activeToday);
-    } else if (!currentUserInStoredList) {
-        // new user signing in for the first time
-        setUsersActiveToday(activeToday + 1);
-    }
-    else {
-        // existing user who has not been active today
-         const userIsNowActive = isSameDay(new Date(user.lastUpdated), today);
-         if(userIsNowActive){
-             const currentlyActive = storedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today));
-             const userAlreadyCounted = currentlyActive.some(activeUser => activeUser.email === user!.email);
-             if(!userAlreadyCounted){
-                 setUsersActiveToday(currentlyActive.length + 1);
-             } else {
-                 setUsersActiveToday(currentlyActive.length);
-             }
-         } else {
-            setUsersActiveToday(activeToday);
-         }
-    }
+    const activeTodayCount = storedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
     
+    // Check if the current user should be counted as active
+    const currentUserIsAlreadyActive = storedUsers.some(u => u.email === user!.email && u.lastUpdated && isSameDay(new Date(u.lastUpdated), today));
+
+    if (!currentUserIsAlreadyActive && isSameDay(new Date(user!.lastUpdated!), today)) {
+        setUsersActiveToday(activeTodayCount + 1);
+    } else {
+        setUsersActiveToday(activeTodayCount);
+    }
+
     // Leaderboard logic - only update every 60 minutes
     const lastUpdated = localStorage.getItem('leaderboardLastUpdated');
     const sixtyMinutes = 60 * 60 * 1000;
@@ -135,76 +121,75 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!loading) {
-      const updatedUsers = allUsers.map(u => u.email === currentUser.email ? currentUser : u);
-      // Ensure the currentUser, if new, is included in allUsers for state consistency
-      if (!updatedUsers.find(u => u.email === currentUser.email)) {
-          updatedUsers.push(currentUser);
-      }
+      // Find the latest version of the current user, or add them if they are new.
+      const userExists = allUsers.some(u => u.email === currentUser.email);
+      const updatedUsers = userExists 
+        ? allUsers.map(u => u.email === currentUser.email ? currentUser : u)
+        : [...allUsers, currentUser];
+      
+      // Filter out the current user to handle their state separately and avoid stale data.
+      const otherUsers = allUsers.filter(u => u.email !== currentUser.email);
+      const newAllUsers = [...otherUsers, currentUser];
+
 
       // Remove profile picture before saving to avoid quota issues
-      const usersToSave = updatedUsers.map(({ profilePicture, ...rest }) => rest);
+      const usersToSave = newAllUsers.map(({ profilePicture, ...rest }) => rest);
       localStorage.setItem("users", JSON.stringify(usersToSave));
       localStorage.setItem("collectiveAllTimeCount", collectiveAllTimeCount.toString());
       
       // Keep leaderboard state in sync with allUsers state
-      const sortedUsers = [...updatedUsers].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
+      const sortedUsers = [...newAllUsers].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
       setLeaderboardUsers(sortedUsers);
 
       // Recalculate active users today accurately
       const today = new Date();
-      const activeTodayCount = updatedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
+      const activeTodayCount = newAllUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
       setUsersActiveToday(activeTodayCount);
     }
   }, [allUsers, collectiveAllTimeCount, currentUser, loading]);
 
 
-  const handleCountUpdate = (increment: number): User => {
-    const updatedUser: User = {
-      ...currentUser,
-      stats: {
-        today: (currentUser.stats?.today ?? 0) + increment,
-        week: (currentUser.stats?.week ?? 0) + increment,
-        allTime: (currentUser.stats?.allTime ?? 0) + increment,
-      },
-      lastUpdated: new Date().toISOString(),
-    };
-    setCurrentUser(updatedUser);
-    
-    // Update allUsers state immediately for instant UI feedback on personal stats
-    // Check if the user exists, if so update, if not add them
-    const userExists = allUsers.some(u => u.email === updatedUser.email);
-    let updatedAllUsers;
-    if (userExists) {
-        updatedAllUsers = allUsers.map(u => u.email === updatedUser.email ? updatedUser : u);
-    } else {
-        updatedAllUsers = [...allUsers, updatedUser];
-    }
-    setAllUsers(updatedAllUsers);
-
-
-    return updatedUser;
+  const handleDailyCountUpdate = () => {
+    setCurrentUser(prevUser => {
+       const updatedUser: User = {
+        ...prevUser,
+        stats: {
+          ...prevUser.stats!,
+          today: (prevUser.stats?.today ?? 0) + 1,
+        },
+        lastUpdated: new Date().toISOString(),
+      };
+      // Instantly update the allUsers array with the latest daily count for the leaderboard
+      setAllUsers(prevAllUsers => {
+          const userExists = prevAllUsers.some(u => u.email === updatedUser.email);
+          if (userExists) {
+              return prevAllUsers.map(u => u.email === updatedUser.email ? updatedUser : u);
+          }
+          return [...prevAllUsers, updatedUser];
+      });
+      return updatedUser;
+    });
   };
   
-  const handleBatchUpdate = (batchSize: number, updatedUser: User) => {
+  const handleBatchCommit = (batchSize: number) => {
      setCollectiveAllTimeCount(prevCount => prevCount + batchSize);
      
-     // Ensure the user passed to setAllUsers has the absolute latest stats.
-     setCurrentUser(updatedUser);
-
-     const userExists = allUsers.some(u => u.email === updatedUser.email);
-      let updatedAllUsers;
-      if (userExists) {
-          updatedAllUsers = allUsers.map(u => u.email === updatedUser.email ? updatedUser : u);
-      } else {
-          updatedAllUsers = [...allUsers, updatedUser];
-      }
-     setAllUsers(updatedAllUsers);
+     // Update week and all-time stats only when a batch is committed
+     setCurrentUser(prevUser => ({
+       ...prevUser,
+       stats: {
+         ...prevUser.stats!,
+         week: (prevUser.stats?.week ?? 0) + batchSize,
+         allTime: (prevUser.stats?.allTime ?? 0) + batchSize,
+       },
+     }));
      
-     // Optionally refresh leaderboard here if you want it more live, or stick to the 60min rule
+     // Leaderboard update check
      const lastUpdated = localStorage.getItem('leaderboardLastUpdated');
      const sixtyMinutes = 60 * 60 * 1000;
      if (!lastUpdated || (new Date().getTime() - new Date(lastUpdated).getTime() > sixtyMinutes)) {
-        updateLeaderboard(updatedAllUsers);
+        // We already updated allUsers in handleDailyCountUpdate, so we just trigger the sort/save
+        updateLeaderboard(allUsers);
      }
   }
 
@@ -241,7 +226,7 @@ export default function DashboardPage() {
         <div className="w-full max-w-4xl space-y-8">
           <div className="text-center text-muted-foreground">{currentDate}</div>
           <UserStats userStats={currentUser.stats!} />
-          <ZikrCounter onCountUpdate={handleCountUpdate} onTargetReached={handleBatchUpdate} />
+          <ZikrCounter onDailyCountUpdate={handleDailyCountUpdate} onBatchCommit={handleBatchCommit} />
         </div>
 
         {/* Community-focused section */}
@@ -257,5 +242,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

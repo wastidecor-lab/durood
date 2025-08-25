@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
@@ -61,9 +60,7 @@ export default function DashboardPage() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
 
-
   const updateLeaderboard = useCallback((users: User[]) => {
-    // Sort by today's count to determine rank
     const sortedUsers = [...users].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
     setLeaderboardUsers(sortedUsers);
     
@@ -77,7 +74,6 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    // Set date on client to avoid hydration mismatch
     setCurrentDate(new Date().toLocaleDateString(undefined, {
       weekday: 'long',
       year: 'numeric',
@@ -95,25 +91,20 @@ export default function DashboardPage() {
     let user = storedUsers.find((u: User) => u.email === loggedInUserEmail);
 
     if (user) {
-      // Check if it's a new day or new week to reset stats
       const today = new Date();
       const lastUpdated = user.lastUpdated ? new Date(user.lastUpdated) : new Date();
-
       if (!isSameDay(today, lastUpdated)) {
         user.stats!.today = 0;
       }
-      // Use Monday as the start of the week
       if (!isSameWeek(today, lastUpdated, { weekStartsOn: 1 })) {
         user.stats!.week = 0;
       }
       user.lastUpdated = today.toISOString();
       
-      // Get profile picture from its separate storage
       const profilePicture = localStorage.getItem(`${user.email}-profilePicture`);
       if (profilePicture) {
         user.profilePicture = profilePicture;
       }
-
     } else {
       user = defaultUser;
     }
@@ -124,19 +115,12 @@ export default function DashboardPage() {
     setCurrentUser(user);
     setCollectiveAllTimeCount(storedCollectiveCount);
 
-    // Calculate users active today
-    const today = new Date();
-    const activeTodayCount = storedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
-    setUsersActiveToday(activeTodayCount);
-    
-    // Leaderboard logic - only update every 60 minutes
     const lastLeaderboardUpdateStr = localStorage.getItem('leaderboardLastUpdated');
     const lastLeaderboardUpdate = lastLeaderboardUpdateStr ? new Date(lastLeaderboardUpdateStr) : null;
     
     if (!lastLeaderboardUpdate || (new Date().getTime() - lastLeaderboardUpdate.getTime() > LEADERBOARD_UPDATE_INTERVAL)) {
       updateLeaderboard(storedUsers);
     } else {
-      // Load the previously stored leaderboard state
       const storedLeaderboardUsers = JSON.parse(localStorage.getItem("leaderboardUsers") || "[]");
       setLeaderboardUsers(storedLeaderboardUsers);
       setNextLeaderboardUpdate(addMinutes(lastLeaderboardUpdate, 60));
@@ -145,44 +129,37 @@ export default function DashboardPage() {
     setLoading(false);
   }, [router, updateLeaderboard]);
 
-  // This effect will run a timer to check if the leaderboard needs updating
   useEffect(() => {
     const interval = setInterval(() => {
       const lastUpdatedStr = localStorage.getItem('leaderboardLastUpdated');
       const lastUpdated = lastUpdatedStr ? new Date(lastUpdatedStr) : null;
       if (lastUpdated && (new Date().getTime() - lastUpdated.getTime() > LEADERBOARD_UPDATE_INTERVAL)) {
-        // The time has passed, let's update.
         const storedUsers: User[] = JSON.parse(localStorage.getItem("users") || "[]");
         updateLeaderboard(storedUsers);
       }
-    }, 60 * 1000); // Check every minute
+    }, 60 * 1000); 
 
-    return () => clearInterval(interval); // Cleanup on component unmount
+    return () => clearInterval(interval);
   }, [updateLeaderboard]);
 
-
   useEffect(() => {
-    if (!loading) {
-      // Find the latest version of the current user, or add them if they are new.
-      const userExists = allUsers.some(u => u.email === currentUser.email);
-      const updatedUsers = userExists 
-        ? allUsers.map(u => u.email === currentUser.email ? currentUser : u)
-        : [...allUsers, currentUser];
-      
-      setAllUsers(updatedUsers);
-
-      // Remove profile picture before saving to avoid quota issues
-      const usersToSave = updatedUsers.map(({ profilePicture, ...rest }) => rest);
-      localStorage.setItem("users", JSON.stringify(usersToSave));
-      localStorage.setItem("collectiveAllTimeCount", collectiveAllTimeCount.toString());
-
-      // Recalculate active users today accurately
-      const today = new Date();
-      const activeTodayCount = updatedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
-      setUsersActiveToday(activeTodayCount);
+    if (loading) return;
+    
+    const updatedUsers = allUsers.map(u => u.email === currentUser.email ? currentUser : u);
+    const userExists = updatedUsers.some(u => u.email === currentUser.email);
+    if (!userExists) {
+      updatedUsers.push(currentUser);
     }
-  }, [collectiveAllTimeCount, currentUser, loading, allUsers]);
+    
+    const usersToSave = updatedUsers.map(({ profilePicture, ...rest }) => rest);
+    localStorage.setItem("users", JSON.stringify(usersToSave));
+    localStorage.setItem("collectiveAllTimeCount", collectiveAllTimeCount.toString());
 
+    const today = new Date();
+    const activeTodayCount = updatedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
+    setUsersActiveToday(activeTodayCount);
+
+  }, [currentUser, collectiveAllTimeCount, loading, allUsers]);
 
   const handleDailyCountUpdate = () => {
     setCurrentUser(prevUser => {
@@ -195,14 +172,7 @@ export default function DashboardPage() {
         lastUpdated: new Date().toISOString(),
       };
       
-      // Update allUsers in real-time for immediate personal feedback
-      setAllUsers(prevAllUsers => {
-          const userExists = prevAllUsers.some(u => u.email === updatedUser.email);
-          if (userExists) {
-              return prevAllUsers.map(u => u.email === updatedUser.email ? updatedUser : u);
-          }
-          return [...prevAllUsers, updatedUser];
-      });
+      setAllUsers(prevAllUsers => prevAllUsers.map(u => u.email === updatedUser.email ? updatedUser : u));
 
       return updatedUser;
     });
@@ -211,7 +181,6 @@ export default function DashboardPage() {
   const handleBatchCommit = (batchSize: number) => {
      setCollectiveAllTimeCount(prevCount => prevCount + batchSize);
      
-     // Update week and all-time stats only when a batch is committed
      setCurrentUser(prevUser => ({
        ...prevUser,
        stats: {
@@ -337,17 +306,15 @@ export default function DashboardPage() {
 
         {/* Shareable Card */}
         <div className="w-full max-w-4xl">
-             <Card ref={shareableRef} className="bg-background shadow-lg p-4 sm:p-6">
+             <Card ref={shareableRef} className="bg-background shadow-lg p-2 sm:p-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
-                  <div className="flex flex-col items-start pt-2">
-                      <div className="flex items-center gap-2">
-                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-6 w-6 sm:h-8 sm:w-8 fill-primary">
-                             <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-88a8,8,0,0,1,8-8,56,56,0,0,1,56,56,8,8,0,0,1-16,0,40,40,0,0,0-40-40,8,8,0,0,1-8-8Z"></path>
-                           </svg>
-                          <CardTitle className="text-lg sm:text-xl font-headline text-primary">Durood Community Counter</CardTitle>
-                      </div>
+                  <div className="flex items-center gap-2 pt-2 flex-shrink-0">
+                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-6 w-6 sm:h-8 sm:w-8 fill-primary">
+                         <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-88a8,8,0,0,1,8-8,56,56,0,0,1,56,56,8,8,0,0,1-16,0,40,40,0,0,0-40-40,8,8,0,0,1-8-8Z"></path>
+                       </svg>
+                      <CardTitle className="text-base sm:text-xl font-headline text-primary">Durood Community Counter</CardTitle>
                   </div>
-                  <div className="flex flex-row sm:flex-row gap-2 w-full sm:w-auto" style={{ visibility: isSharing ? 'hidden' : 'visible' }}>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto" style={{ visibility: isSharing ? 'hidden' : 'visible' }}>
                       <Button onClick={handleShare} disabled={isSharing} variant="outline" size="sm" className="w-full sm:w-auto">
                           <Share2 className="mr-2 h-4 w-4" />
                           {isSharing ? "Sharing..." : "Share Progress"}
@@ -361,7 +328,7 @@ export default function DashboardPage() {
 
 
                 <CardContent className="p-0">
-                    <div className="flex items-center gap-4 border-y py-4">
+                    <div className="flex items-center gap-2 sm:gap-4 border-y py-4 px-2">
                         <Avatar className="h-16 w-16">
                             <AvatarImage src={currentUser.profilePicture || `https://placehold.co/100x100.png`} alt={currentUser.name} data-ai-hint="profile avatar"/>
                             <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
@@ -446,3 +413,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

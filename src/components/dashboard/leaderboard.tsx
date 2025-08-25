@@ -29,7 +29,7 @@ export function Leaderboard({ users }: LeaderboardProps) {
   // Effect to hydrate profile pictures on the client
   useEffect(() => {
     const usersWithPics = users.map(user => {
-      const profilePicture = localStorage.getItem(`${user.email}-profilePicture`);
+      const profilePicture = typeof window !== 'undefined' ? localStorage.getItem(`${user.email}-profilePicture`) : null;
       return {
         ...user,
         profilePicture: profilePicture || user.profilePicture || "",
@@ -38,6 +38,15 @@ export function Leaderboard({ users }: LeaderboardProps) {
     // Sort by today's count to determine rank
     const sortedUsers = [...usersWithPics].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
     setDisplayUsers(sortedUsers);
+     if (typeof window !== 'undefined') {
+        try {
+            // Save the hydrated & sorted list for the next page load within the 60min window
+            const usersToSave = sortedUsers.map(({ profilePicture, ...rest }) => rest);
+            localStorage.setItem('leaderboardUsers', JSON.stringify(usersToSave));
+        } catch (e) {
+            console.error("Failed to save leaderboard users to localStorage", e);
+        }
+    }
   }, [users]);
 
   return (

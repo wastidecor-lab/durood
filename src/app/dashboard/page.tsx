@@ -95,25 +95,17 @@ export default function DashboardPage() {
     // Calculate users active today
     const today = new Date();
     const activeTodayCount = storedUsers.filter(u => u.lastUpdated && isSameDay(new Date(u.lastUpdated), today)).length;
+    setUsersActiveToday(activeTodayCount);
     
-    // Check if the current user should be counted as active
-    const currentUserIsAlreadyActive = storedUsers.some(u => u.email === user!.email && u.lastUpdated && isSameDay(new Date(u.lastUpdated), today));
-
-    if (!currentUserIsAlreadyActive && isSameDay(new Date(user!.lastUpdated!), today)) {
-        setUsersActiveToday(activeTodayCount + 1);
-    } else {
-        setUsersActiveToday(activeTodayCount);
-    }
-
     // Leaderboard logic - only update every 60 minutes
-    const lastUpdated = localStorage.getItem('leaderboardLastUpdated');
+    const lastLeaderboardUpdate = localStorage.getItem('leaderboardLastUpdated');
     const sixtyMinutes = 60 * 60 * 1000;
-    if (!lastUpdated || (new Date().getTime() - new Date(lastUpdated).getTime() > sixtyMinutes)) {
+    if (!lastLeaderboardUpdate || (new Date().getTime() - new Date(lastLeaderboardUpdate).getTime() > sixtyMinutes)) {
       updateLeaderboard(storedUsers);
     } else {
-      // Sort on load instead of getting from storage
-      const sortedUsers = [...storedUsers].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
-      setLeaderboardUsers(sortedUsers);
+      // Load the previously stored leaderboard state
+      const storedLeaderboardUsers = JSON.parse(localStorage.getItem("leaderboardUsers") || "[]");
+      setLeaderboardUsers(storedLeaderboardUsers);
     }
 
     setLoading(false);
@@ -127,19 +119,12 @@ export default function DashboardPage() {
         ? allUsers.map(u => u.email === currentUser.email ? currentUser : u)
         : [...allUsers, currentUser];
       
-      // Filter out the current user to handle their state separately and avoid stale data.
-      const otherUsers = allUsers.filter(u => u.email !== currentUser.email);
-      const newAllUsers = [...otherUsers, currentUser];
-
+      const newAllUsers = updatedUsers;
 
       // Remove profile picture before saving to avoid quota issues
       const usersToSave = newAllUsers.map(({ profilePicture, ...rest }) => rest);
       localStorage.setItem("users", JSON.stringify(usersToSave));
       localStorage.setItem("collectiveAllTimeCount", collectiveAllTimeCount.toString());
-      
-      // Keep leaderboard state in sync with allUsers state
-      const sortedUsers = [...newAllUsers].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
-      setLeaderboardUsers(sortedUsers);
 
       // Recalculate active users today accurately
       const today = new Date();
@@ -188,7 +173,6 @@ export default function DashboardPage() {
      const lastUpdated = localStorage.getItem('leaderboardLastUpdated');
      const sixtyMinutes = 60 * 60 * 1000;
      if (!lastUpdated || (new Date().getTime() - new Date(lastUpdated).getTime() > sixtyMinutes)) {
-        // We already updated allUsers in handleDailyCountUpdate, so we just trigger the sort/save
         updateLeaderboard(allUsers);
      }
   }

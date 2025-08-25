@@ -1,19 +1,19 @@
-import { generateWeeklyLeaderboard, type GenerateWeeklyLeaderboardInput } from '@/ai/flows/generate-weekly-leaderboard';
+import { generateDailyLeaderboard, type GenerateDailyLeaderboardInput } from '@/ai/flows/generate-daily-leaderboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Crown, Medal, Award } from 'lucide-react';
 
-// Mock data representing users and their Zikr counts for the week
-const users: GenerateWeeklyLeaderboardInput['users'] = [
-  { name: 'Aisha Siddiqa', zikrCount: 12500 },
-  { name: 'Fatima Al-Fihri', zikrCount: 9800 },
-  { name: 'Omar Khayyam', zikrCount: 15200 },
-  { name: 'Ibn Sina', zikrCount: 7600 },
-  { name: 'Al-Khwarizmi', zikrCount: 11300 },
-  { name: 'Rumi', zikrCount: 8900 },
-  { name: 'Zaynab al-Ghazali', zikrCount: 18400 },
-  { name: 'Ibn Rushd', zikrCount: 6500 },
+// Mock data representing users and their Zikr counts for the day
+const users: GenerateDailyLeaderboardInput['users'] = [
+  { name: 'Aisha Siddiqa', zikrCount: 1250 },
+  { name: 'Fatima Al-Fihri', zikrCount: 980 },
+  { name: 'Omar Khayyam', zikrCount: 1520 },
+  { name: 'Ibn Sina', zikrCount: 760 },
+  { name: 'Al-Khwarizmi', zikrCount: 1130 },
+  { name: 'Rumi', zikrCount: 890 },
+  { name: 'Zaynab al-Ghazali', zikrCount: 1840 },
+  { name: 'Ibn Rushd', zikrCount: 650 },
 ];
 
 const rankIcons = [
@@ -23,7 +23,7 @@ const rankIcons = [
 ];
 
 export async function Leaderboard() {
-  const { leaderboard } = await generateWeeklyLeaderboard({ users });
+  const { leaderboard } = await generateDailyLeaderboard({ users });
   
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -32,8 +32,8 @@ export async function Leaderboard() {
   return (
     <Card className="shadow-lg bg-accent/20">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-headline text-accent-foreground">Weekly Top Readers</CardTitle>
-        <CardDescription className="text-accent-foreground/80">The leaderboard resets every week. Keep up the great work!</CardDescription>
+        <CardTitle className="text-2xl font-headline text-accent-foreground">Daily Top Readers</CardTitle>
+        <CardDescription className="text-accent-foreground/80">The leaderboard is live and updates throughout the day. Keep up the great work!</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>

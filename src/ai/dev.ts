@@ -1,4 +1,4 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/generate-weekly-leaderboard.ts';
+import '@/ai/flows/generate-daily-leaderboard.ts';

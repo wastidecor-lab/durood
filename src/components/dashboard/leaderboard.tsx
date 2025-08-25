@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Crown, Medal, Award } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useEffect, useState } from 'react';
 
 interface LeaderboardProps {
   users: User[];
@@ -18,13 +19,26 @@ const rankIcons = [
 ];
 
 export function Leaderboard({ users }: LeaderboardProps) {
+  const [displayUsers, setDisplayUsers] = useState<User[]>([]);
   
   const getInitials = (name: string) => {
+    if (!name) return "";
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
 
-  // Sort by today's count to determine rank
-  const sortedUsers = [...users].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
+  // Effect to hydrate profile pictures on the client
+  useEffect(() => {
+    const usersWithPics = users.map(user => {
+      const profilePicture = localStorage.getItem(`${user.email}-profilePicture`);
+      return {
+        ...user,
+        profilePicture: profilePicture || user.profilePicture || "",
+      };
+    });
+    // Sort by today's count to determine rank
+    const sortedUsers = [...usersWithPics].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
+    setDisplayUsers(sortedUsers);
+  }, [users]);
 
   return (
     <Card className="shadow-lg bg-accent/20">
@@ -43,7 +57,7 @@ export function Leaderboard({ users }: LeaderboardProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedUsers.map((user, index) => (
+              {displayUsers.map((user, index) => (
                 <TableRow key={user.email} className="font-medium">
                   <TableCell className="text-center">
                     {index < 3 ? rankIcons[index] : <span className="font-bold">{index + 1}</span>}

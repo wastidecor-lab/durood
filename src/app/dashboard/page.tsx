@@ -74,6 +74,13 @@ export default function DashboardPage() {
         user.stats!.week = 0;
       }
       user.lastUpdated = today.toISOString();
+      
+      // Get profile picture from its separate storage
+      const profilePicture = localStorage.getItem(`${user.email}-profilePicture`);
+      if (profilePicture) {
+        user.profilePicture = profilePicture;
+      }
+
     } else {
       user = defaultUser;
     }
@@ -101,9 +108,10 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!loading) {
       const updatedUsers = allUsers.map(u => u.email === currentUser.email ? currentUser : u);
-      localStorage.setItem("users", JSON.stringify(updatedUsers));
+      // Remove profile picture before saving to avoid quota issues
+      const usersToSave = updatedUsers.map(({ profilePicture, ...rest }) => rest);
+      localStorage.setItem("users", JSON.stringify(usersToSave));
       localStorage.setItem("collectiveAllTimeCount", collectiveAllTimeCount.toString());
-      // No longer saving leaderboardUsers to localStorage
     }
   }, [allUsers, collectiveAllTimeCount, currentUser, loading]);
 

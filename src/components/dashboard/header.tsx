@@ -29,12 +29,16 @@ export function Header() {
   const [user, setUser] = useState<User>(defaultUser);
 
   useEffect(() => {
-    // Simulate loading user data
     const loggedInUserEmail = localStorage.getItem("loggedInUser");
     if (loggedInUserEmail) {
       const users: User[] = JSON.parse(localStorage.getItem("users") || "[]");
       const currentUser = users.find(u => u.email === loggedInUserEmail);
       if (currentUser) {
+        // Get profile picture from its separate storage
+        const profilePicture = localStorage.getItem(`${currentUser.email}-profilePicture`);
+        if (profilePicture) {
+          currentUser.profilePicture = profilePicture;
+        }
         setUser(currentUser);
       }
     }
@@ -48,6 +52,7 @@ export function Header() {
   };
   
   const getInitials = (name: string) => {
+    if (!name) return "";
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
 

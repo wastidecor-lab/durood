@@ -89,7 +89,8 @@ export function CreateProfileForm() {
       name: values.name,
       city: values.city,
       whatsapp: values.whatsapp,
-      profilePicture: values.profilePicture || "",
+      // Don't save the picture in the main user object to avoid storage quota issues
+      profilePicture: "",
       stats: { today: 0, week: 0, allTime: 0 },
       lastUpdated: new Date().toISOString(),
     };
@@ -97,10 +98,24 @@ export function CreateProfileForm() {
     // Save the new user to the users array in localStorage
     const users: User[] = JSON.parse(localStorage.getItem("users") || "[]");
     users.push(newUser);
-    localStorage.setItem("users", JSON.stringify(users));
+    try {
+      localStorage.setItem("users", JSON.stringify(users));
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Storage Error",
+        description: "Could not save user data. The browser storage might be full.",
+      });
+      return;
+    }
+
 
     // "Log in" the new user
     localStorage.setItem("loggedInUser", newUserEmail);
+    // Store profile picture separately for the logged-in user session
+    if (values.profilePicture) {
+      localStorage.setItem(`${newUserEmail}-profilePicture`, values.profilePicture);
+    }
     localStorage.removeItem("newUserEmail");
 
 

@@ -399,6 +399,15 @@ export default function DashboardPage() {
                     <CardTitle className="text-4xl font-headline text-primary">You're Invited!</CardTitle>
                 </CardHeader>
                 <CardContent className="p-8 text-center">
+                    <div className="flex flex-col items-center gap-4 mb-6">
+                        <Avatar className="h-20 w-20 border-2 border-primary">
+                            <AvatarImage src={currentUser.profilePicture || `https://placehold.co/100x100.png`} alt={currentUser.name} data-ai-hint="profile avatar"/>
+                            <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
+                        </Avatar>
+                        <p className="text-lg font-medium text-foreground">
+                            Your friend, <span className="font-bold text-primary">{currentUser.name}</span>, invites you to join!
+                        </p>
+                    </div>
                     <p className="text-lg text-foreground mb-4">
                         Join our community on the <span className="font-bold text-primary">Durood Community Counter</span> app.
                         Let's unite to send blessings and track our collective progress.

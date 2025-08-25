@@ -97,9 +97,12 @@ export function CreateProfileForm() {
 
     // Save the new user to the users array in localStorage
     const users: User[] = JSON.parse(localStorage.getItem("users") || "[]");
-    users.push(newUser);
+    const usersToSave = users.filter(u => u.email !== newUser.email);
+    usersToSave.push(newUser);
+
     try {
-      localStorage.setItem("users", JSON.stringify(users));
+      // This is the main user list without profile pictures
+      localStorage.setItem("users", JSON.stringify(usersToSave));
     } catch (error) {
        toast({
         variant: "destructive",
@@ -109,12 +112,20 @@ export function CreateProfileForm() {
       return;
     }
 
-
     // "Log in" the new user
     localStorage.setItem("loggedInUser", newUserEmail);
     // Store profile picture separately for the logged-in user session
     if (values.profilePicture) {
-      localStorage.setItem(`${newUserEmail}-profilePicture`, values.profilePicture);
+      try {
+        localStorage.setItem(`${newUserEmail}-profilePicture`, values.profilePicture);
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Image Too Large",
+          description: "Your profile picture is too large to be saved. Please choose a smaller image.",
+        });
+        // We can still proceed without the profile picture
+      }
     }
     localStorage.removeItem("newUserEmail");
 

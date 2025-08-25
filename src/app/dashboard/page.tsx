@@ -30,7 +30,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<User>(defaultUser);
   const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [collectiveCount, setCollectiveCount] = useState(0);
+  const [collectiveAllTimeCount, setCollectiveAllTimeCount] = useState(0);
   const [currentDate, setCurrentDate] = useState("");
 
   useEffect(() => {
@@ -68,11 +68,11 @@ export default function DashboardPage() {
       user = defaultUser;
     }
     
-    const storedCollectiveCount = parseInt(localStorage.getItem("collectiveCount") || "0", 10);
+    const storedCollectiveCount = parseInt(localStorage.getItem("collectiveAllTimeCount") || "0", 10);
     
     setAllUsers(storedUsers);
     setCurrentUser(user);
-    setCollectiveCount(storedCollectiveCount);
+    setCollectiveAllTimeCount(storedCollectiveCount);
     setLoading(false);
   }, [router]);
 
@@ -80,9 +80,9 @@ export default function DashboardPage() {
     if (!loading) {
       const updatedUsers = allUsers.map(u => u.email === currentUser.email ? currentUser : u);
       localStorage.setItem("users", JSON.stringify(updatedUsers));
-      localStorage.setItem("collectiveCount", collectiveCount.toString());
+      localStorage.setItem("collectiveAllTimeCount", collectiveAllTimeCount.toString());
     }
-  }, [allUsers, collectiveCount, currentUser, loading]);
+  }, [allUsers, collectiveAllTimeCount, currentUser, loading]);
 
   const handleCountUpdate = (increment: number): User => {
     const updatedUser: User = {
@@ -99,7 +99,7 @@ export default function DashboardPage() {
   };
   
   const handleBatchUpdate = (batchSize: number, updatedUser: User) => {
-     setCollectiveCount(prevCount => prevCount + batchSize);
+     setCollectiveAllTimeCount(prevCount => prevCount + batchSize);
      
      // Ensure the user passed to setAllUsers has the absolute latest stats.
      setCurrentUser(updatedUser);
@@ -140,7 +140,7 @@ export default function DashboardPage() {
       <main className="flex flex-1 flex-col items-center gap-8 p-4 md:p-8">
         <div className="w-full max-w-4xl space-y-8">
           <div className="text-center text-muted-foreground">{currentDate}</div>
-          <CollectiveCounter collectiveCount={collectiveCount} />
+          <CollectiveCounter collectiveCount={collectiveAllTimeCount} />
           <UserStats userStats={currentUser.stats!} />
           <ZikrCounter onCountUpdate={handleCountUpdate} onTargetReached={handleBatchUpdate} />
           <Leaderboard users={allUsers} />

@@ -22,6 +22,7 @@ export function Leaderboard({ users }: LeaderboardProps) {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
 
+  // Sort by today's count to determine rank, but will display all-time count
   const sortedUsers = [...users].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
   const top3Users = sortedUsers.slice(0, 3);
 
@@ -37,7 +38,7 @@ export function Leaderboard({ users }: LeaderboardProps) {
             <TableRow>
               <TableHead className="w-[50px] text-center">Rank</TableHead>
               <TableHead>User</TableHead>
-              <TableHead className="text-right">Durood Count</TableHead>
+              <TableHead className="text-right">Total Durood Count</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -53,7 +54,7 @@ export function Leaderboard({ users }: LeaderboardProps) {
                     <span>{user.name}</span>
                   </div>
                 </TableCell>
-                <TableCell className="text-right text-lg font-bold font-headline">{(user.stats?.today ?? 0).toLocaleString()}</TableCell>
+                <TableCell className="text-right text-lg font-bold font-headline">{(user.stats?.allTime ?? 0).toLocaleString()}</TableCell>
               </TableRow>
             ))}
           </TableBody>

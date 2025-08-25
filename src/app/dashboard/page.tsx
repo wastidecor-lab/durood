@@ -112,8 +112,13 @@ export default function DashboardPage() {
       const usersToSave = updatedUsers.map(({ profilePicture, ...rest }) => rest);
       localStorage.setItem("users", JSON.stringify(usersToSave));
       localStorage.setItem("collectiveAllTimeCount", collectiveAllTimeCount.toString());
+      
+      // Keep leaderboard state in sync with allUsers state
+      const sortedUsers = [...updatedUsers].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
+      setLeaderboardUsers(sortedUsers);
     }
   }, [allUsers, collectiveAllTimeCount, currentUser, loading]);
+
 
   const handleCountUpdate = (increment: number): User => {
     const updatedUser: User = {

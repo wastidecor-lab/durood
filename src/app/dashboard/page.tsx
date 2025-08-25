@@ -106,7 +106,10 @@ export default function DashboardPage() {
         user.profilePicture = profilePicture;
       }
     } else {
-      user = defaultUser;
+      // This case handles if the user was deleted from localStorage but still has a loggedInUser key.
+      // We push them to the login page to re-authenticate.
+      router.push('/');
+      return;
     }
     
     const storedCollectiveCount = parseInt(localStorage.getItem("collectiveAllTimeCount") || "0", 10);
@@ -142,15 +145,19 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, [updateLeaderboard]);
 
+  // This effect now only saves data and calculates active users, preventing loops.
   useEffect(() => {
     if (loading) return;
-    
+  
+    // We create a new array with the updated current user.
     const updatedUsers = allUsers.map(u => u.email === currentUser.email ? currentUser : u);
+    
+    // Check if the current user was not in the list (which shouldn't happen with the new logic, but is a good safeguard)
     const userExists = updatedUsers.some(u => u.email === currentUser.email);
     if (!userExists) {
-      updatedUsers.push(currentUser);
+        updatedUsers.push(currentUser);
     }
-    
+
     const usersToSave = updatedUsers.map(({ profilePicture, ...rest }) => rest);
     localStorage.setItem("users", JSON.stringify(usersToSave));
     localStorage.setItem("collectiveAllTimeCount", collectiveAllTimeCount.toString());
@@ -172,6 +179,7 @@ export default function DashboardPage() {
         lastUpdated: new Date().toISOString(),
       };
       
+      // Update the allUsers state with the updated user data
       setAllUsers(prevAllUsers => prevAllUsers.map(u => u.email === updatedUser.email ? updatedUser : u));
 
       return updatedUser;
@@ -208,7 +216,7 @@ export default function DashboardPage() {
         const dataUrl = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.href = dataUrl;
-        link.download = 'durood-progress.png';
+        link.download = 'zikr-progress.png';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -243,7 +251,7 @@ export default function DashboardPage() {
         const dataUrl = canvas.toDataURL("image/png");
         const link = document.createElement("a");
         link.href = dataUrl;
-        link.download = "join-durood-community.png";
+        link.download = "join-zikrx-community.png";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -264,6 +272,7 @@ export default function DashboardPage() {
 };
 
   const hydratedLeaderboardUsers = useMemo(() => {
+    // Hydrate the profile pictures from localStorage
     return leaderboardUsers.map(user => {
       const profilePicture = typeof window !== 'undefined' ? localStorage.getItem(`${user.email}-profilePicture`) : null;
       return {
@@ -312,7 +321,7 @@ export default function DashboardPage() {
                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-6 w-6 sm:h-8 sm:w-8 fill-primary">
                          <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-88a8,8,0,0,1,8-8,56,56,0,0,1,56,56,8,8,0,0,1-16,0,40,40,0,0,0-40-40,8,8,0,0,1-8-8Z"></path>
                        </svg>
-                      <CardTitle className="text-base sm:text-xl font-headline text-primary">Durood Community Counter</CardTitle>
+                      <CardTitle className="text-base sm:text-xl font-headline text-primary">ZikarX</CardTitle>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto" style={{ visibility: isSharing ? 'hidden' : 'visible' }}>
                       <Button onClick={handleShare} disabled={isSharing} variant="outline" size="sm" className="w-full sm:w-auto">
@@ -369,7 +378,7 @@ export default function DashboardPage() {
         </div>
       </main>
       <footer className="py-6 px-4 text-center text-sm text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} Durood Community Counter. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} ZikarX. All rights reserved.</p>
       </footer>
       
       {/* Hidden Invitation Card for html2canvas */}
@@ -393,7 +402,7 @@ export default function DashboardPage() {
                         </p>
                     </div>
                     <p className="text-lg text-foreground mb-4">
-                        Join our community on the <span className="font-bold text-primary">Durood Community Counter</span> app.
+                        Join our community on the <span className="font-bold text-primary">ZikarX</span> app.
                         Let's unite to send blessings and track our collective progress.
                     </p>
                      <p className="text-lg font-urdu text-foreground mb-6" dir="rtl">
@@ -413,5 +422,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

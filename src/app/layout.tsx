@@ -22,8 +22,8 @@ const fontUrdu = Noto_Nastaliq_Urdu({
 
 
 export const metadata: Metadata = {
-  title: 'Durood Community Counter',
-  description: 'A platform for Muslims to collectively recite Durood Sharif.',
+  title: 'ZikarX',
+  description: 'A platform to track your Zikr and connect with a community.',
 };
 
 export default function RootLayout({

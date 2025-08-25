@@ -148,7 +148,7 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
           <DialogHeader className="items-center text-center">
             <Trophy className="h-16 w-16 text-yellow-500 mb-4" />
             <DialogTitle className="text-3xl font-headline text-primary">Masha'Allah!</DialogTitle>
-          </Header>
+          </DialogHeader>
           <div className="py-4 text-center">
             <p className="text-lg">You have reached your target of {target.toLocaleString()} Durood.</p>
             <p className="text-muted-foreground mt-2">May your efforts be accepted. Keep up the wonderful work!</p>

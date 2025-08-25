@@ -58,14 +58,14 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-header-background text-primary-foreground">
+    <header className="sticky top-0 z-50 w-full border-b bg-header-background text-white">
       <div className="container flex h-16 items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/dashboard" className="mr-6 flex items-center space-x-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-6 w-6 fill-primary-foreground">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-6 w-6 fill-white">
               <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-88a8,8,0,0,1,8-8,56,56,0,0,1,56,56,8,8,0,0,1-16,0,40,40,0,0,0-40-40,8,8,0,0,1-8-8Z"></path>
             </svg>
-            <span className="font-bold font-headline text-primary-foreground">ZikarX</span>
+            <span className="font-bold font-headline text-white">ZikarX</span>
           </Link>
         </div>
 
@@ -74,7 +74,7 @@ export function Header() {
              <span className="hidden sm:inline-block text-sm font-medium">{user.name}</span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-primary/20">
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-black/10">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={user.profilePicture || `https://placehold.co/100x100.png`} alt={user.name} data-ai-hint="profile avatar"/>
                     <AvatarFallback>{getInitials(user.name)}</AvatarFallback>

@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Crown, Medal, Award } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 
 interface LeaderboardProps {
@@ -21,35 +20,11 @@ const rankIcons = [
 ];
 
 export function Leaderboard({ users, nextUpdateTime }: LeaderboardProps) {
-  const [displayUsers, setDisplayUsers] = useState<User[]>([]);
   
   const getInitials = (name: string) => {
     if (!name) return "";
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
-
-  // Effect to hydrate profile pictures on the client
-  useEffect(() => {
-    const usersWithPics = users.map(user => {
-      const profilePicture = typeof window !== 'undefined' ? localStorage.getItem(`${user.email}-profilePicture`) : null;
-      return {
-        ...user,
-        profilePicture: profilePicture || user.profilePicture || "",
-      };
-    });
-    // Sort by today's count to determine rank
-    const sortedUsers = [...usersWithPics].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
-    setDisplayUsers(sortedUsers);
-     if (typeof window !== 'undefined') {
-        try {
-            // Save the hydrated & sorted list for the next page load within the 60min window
-            const usersToSave = sortedUsers.map(({ profilePicture, ...rest }) => rest);
-            localStorage.setItem('leaderboardUsers', JSON.stringify(usersToSave));
-        } catch (e) {
-            console.error("Failed to save leaderboard users to localStorage", e);
-        }
-    }
-  }, [users]);
 
   const nextUpdateFormatted = nextUpdateTime ? format(nextUpdateTime, 'p') : 'the next hour';
 
@@ -75,7 +50,7 @@ export function Leaderboard({ users, nextUpdateTime }: LeaderboardProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {displayUsers.map((user, index) => (
+              {users.map((user, index) => (
                 <TableRow key={user.email} className="font-medium">
                   <TableCell className="text-center px-2">
                     {index < 3 ? rankIcons[index] : <span className="font-bold text-sm">{index + 1}</span>}
@@ -100,5 +75,3 @@ export function Leaderboard({ users, nextUpdateTime }: LeaderboardProps) {
     </Card>
   );
 }
-
-    

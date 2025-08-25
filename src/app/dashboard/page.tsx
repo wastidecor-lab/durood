@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/dashboard/header";
 import { CollectiveCounter } from "@/components/dashboard/collective-counter";
@@ -66,6 +66,11 @@ export default function DashboardPage() {
     // Sort by today's count to determine rank
     const sortedUsers = [...users].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
     setLeaderboardUsers(sortedUsers);
+    
+    // Save hydrated & sorted list for the next page load within the 60min window
+    const usersToSave = sortedUsers.map(({ profilePicture, ...rest }) => rest);
+    localStorage.setItem('leaderboardUsers', JSON.stringify(usersToSave));
+        
     const now = new Date();
     localStorage.setItem('leaderboardLastUpdated', now.toISOString());
     setNextLeaderboardUpdate(addMinutes(now, 60));
@@ -289,6 +294,16 @@ export default function DashboardPage() {
     }
 };
 
+  const hydratedLeaderboardUsers = useMemo(() => {
+    return leaderboardUsers.map(user => {
+      const profilePicture = typeof window !== 'undefined' ? localStorage.getItem(`${user.email}-profilePicture`) : null;
+      return {
+        ...user,
+        profilePicture: profilePicture || user.profilePicture || "",
+      };
+    });
+  }, [leaderboardUsers]);
+
 
   if (loading) {
     return (
@@ -323,8 +338,8 @@ export default function DashboardPage() {
         {/* Shareable Card */}
         <div className="w-full max-w-4xl">
              <Card ref={shareableRef} className="bg-background shadow-lg p-4 sm:p-6">
-                <div className="flex flex-col-reverse sm:flex-row justify-between items-start gap-4 mb-4">
-                  <div className="flex flex-col items-center sm:items-start text-center sm:text-left pt-2">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+                  <div className="flex flex-col items-start pt-2">
                       <div className="flex items-center gap-2">
                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-6 w-6 sm:h-8 sm:w-8 fill-primary">
                              <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-88a8,8,0,0,1,8-8,56,56,0,0,1,56,56,8,8,0,0,1-16,0,40,40,0,0,0-40-40,8,8,0,0,1-8-8Z"></path>
@@ -332,7 +347,7 @@ export default function DashboardPage() {
                           <CardTitle className="text-lg sm:text-xl font-headline text-primary">Durood Community Counter</CardTitle>
                       </div>
                   </div>
-                  <div className="flex flex-row sm:flex-col lg:flex-row gap-2 w-full sm:w-auto justify-center" style={{ visibility: isSharing ? 'hidden' : 'visible' }}>
+                  <div className="flex flex-row sm:flex-row gap-2 w-full sm:w-auto" style={{ visibility: isSharing ? 'hidden' : 'visible' }}>
                       <Button onClick={handleShare} disabled={isSharing} variant="outline" size="sm" className="w-full sm:w-auto">
                           <Share2 className="mr-2 h-4 w-4" />
                           {isSharing ? "Sharing..." : "Share Progress"}
@@ -383,7 +398,7 @@ export default function DashboardPage() {
         <div className="w-full max-w-4xl space-y-8 mt-8">
           <CollectiveCounter collectiveCount={collectiveAllTimeCount} />
           <CommunityStats totalUsers={allUsers.length} activeUsersToday={usersActiveToday} />
-          <Leaderboard users={leaderboardUsers} nextUpdateTime={nextLeaderboardUpdate} />
+          <Leaderboard users={hydratedLeaderboardUsers} nextUpdateTime={nextLeaderboardUpdate} />
         </div>
       </main>
       <footer className="py-6 px-4 text-center text-sm text-muted-foreground">
@@ -431,5 +446,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

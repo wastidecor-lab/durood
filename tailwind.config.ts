@@ -23,6 +23,7 @@ const config = {
         urdu: ['var(--font-urdu)', 'sans-serif'],
       },
       colors: {
+        'header-background': '#075E54',
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

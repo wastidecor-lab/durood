@@ -29,10 +29,10 @@ export function Leaderboard({ users, nextUpdateTime }: LeaderboardProps) {
   const nextUpdateFormatted = nextUpdateTime ? format(nextUpdateTime, 'p') : 'the next hour';
 
   return (
-    <Card className="shadow-lg bg-accent/20">
+    <Card className="shadow-lg">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-headline text-accent-foreground">Daily Top Readers</CardTitle>
-        <CardDescription className="text-accent-foreground/80">
+        <CardTitle className="text-2xl font-headline">Daily Top Readers</CardTitle>
+        <CardDescription>
             The leaderboard refreshes periodically. Keep up the great work!
             <br />
             Next update around: <span className="font-bold">{nextUpdateFormatted}</span>

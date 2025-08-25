@@ -215,16 +215,18 @@ export default function DashboardPage() {
   const handleShare = async () => {
     if (!shareableRef.current) return;
     setIsSharing(true);
-    
-    // Temporarily add a class to hide the share button during capture
+
     const buttonElement = document.getElementById("share-button");
     if (buttonElement) buttonElement.style.visibility = 'hidden';
+
+    // Get the computed background color
+    const computedBgColor = window.getComputedStyle(document.body).backgroundColor;
 
     try {
         const canvas = await html2canvas(shareableRef.current, {
             useCORS: true,
-            backgroundColor: 'hsl(var(--background))',
-            scale: 2, // Increase resolution
+            backgroundColor: computedBgColor, // Use the computed color
+            scale: 2,
         });
         const dataUrl = canvas.toDataURL('image/png');
         const link = document.createElement('a');

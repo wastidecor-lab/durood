@@ -172,10 +172,15 @@ export default function DashboardPage() {
     <div className="flex min-h-screen w-full flex-col">
       <Header />
       <main className="flex flex-1 flex-col items-center gap-8 p-4 md:p-8">
+        {/* User-focused section */}
         <div className="w-full max-w-4xl space-y-8">
           <div className="text-center text-muted-foreground">{currentDate}</div>
           <UserStats userStats={currentUser.stats!} />
           <ZikrCounter onCountUpdate={handleCountUpdate} onTargetReached={handleBatchUpdate} />
+        </div>
+
+        {/* Community-focused section */}
+        <div className="w-full max-w-4xl space-y-8 mt-8">
           <CollectiveCounter collectiveCount={collectiveAllTimeCount} />
           <CommunityStats totalUsers={allUsers.length} liveUsers={allUsers.length} />
           <Leaderboard users={leaderboardUsers} />

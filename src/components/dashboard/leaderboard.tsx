@@ -7,7 +7,7 @@ import { Crown, Medal, Award } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useState } from 'react';
-import { differenceInSeconds, format } from 'date-fns';
+import { format } from 'date-fns';
 
 interface LeaderboardProps {
   users: User[];
@@ -22,7 +22,6 @@ const rankIcons = [
 
 export function Leaderboard({ users, nextUpdateTime }: LeaderboardProps) {
   const [displayUsers, setDisplayUsers] = useState<User[]>([]);
-  const [timeRemaining, setTimeRemaining] = useState("00:00");
   
   const getInitials = (name: string) => {
     if (!name) return "";
@@ -52,28 +51,7 @@ export function Leaderboard({ users, nextUpdateTime }: LeaderboardProps) {
     }
   }, [users]);
 
-  useEffect(() => {
-    if (!nextUpdateTime) return;
-
-    const interval = setInterval(() => {
-      const now = new Date();
-      const secondsLeft = differenceInSeconds(nextUpdateTime, now);
-
-      if (secondsLeft <= 0) {
-        setTimeRemaining("00:00");
-        clearInterval(interval);
-        // Optionally trigger a refresh here or wait for the parent component to handle it
-        return;
-      }
-
-      const minutes = Math.floor(secondsLeft / 60);
-      const seconds = secondsLeft % 60;
-      setTimeRemaining(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [nextUpdateTime]);
-
+  const nextUpdateFormatted = nextUpdateTime ? format(nextUpdateTime, 'p') : 'the next hour';
 
   return (
     <Card className="shadow-lg bg-accent/20">
@@ -82,7 +60,7 @@ export function Leaderboard({ users, nextUpdateTime }: LeaderboardProps) {
         <CardDescription className="text-accent-foreground/80">
             The leaderboard refreshes periodically. Keep up the great work!
             <br />
-            Next update in: <span className="font-bold">{timeRemaining}</span>
+            Next update around: <span className="font-bold">{nextUpdateFormatted}</span>
         </CardDescription>
       </CardHeader>
       <CardContent>

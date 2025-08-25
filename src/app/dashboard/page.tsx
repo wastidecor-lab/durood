@@ -16,6 +16,8 @@ import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 
 
 const defaultUser: User = {
@@ -48,6 +50,11 @@ export default function DashboardPage() {
   const [nextLeaderboardUpdate, setNextLeaderboardUpdate] = useState<Date | null>(null);
   
   const shareableRef = useRef<HTMLDivElement>(null);
+
+  const getInitials = (name: string) => {
+    if (!name) return "";
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  }
 
 
   const updateLeaderboard = useCallback((users: User[]) => {
@@ -209,10 +216,15 @@ export default function DashboardPage() {
     if (!shareableRef.current) return;
     setIsSharing(true);
     
+    // Temporarily add a class to hide the share button during capture
+    const buttonElement = document.getElementById("share-button");
+    if (buttonElement) buttonElement.style.visibility = 'hidden';
+
     try {
         const canvas = await html2canvas(shareableRef.current, {
             useCORS: true,
-            backgroundColor: null, // Use element's background
+            backgroundColor: 'hsl(var(--background))',
+            scale: 2, // Increase resolution
         });
         const dataUrl = canvas.toDataURL('image/png');
         const link = document.createElement('a');
@@ -233,6 +245,7 @@ export default function DashboardPage() {
             description: "Could not create the image. Please try again.",
         });
     } finally {
+        if (buttonElement) buttonElement.style.visibility = 'visible';
         setIsSharing(false);
     }
   };
@@ -264,19 +277,53 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
+    <div className="flex min-h-screen w-full flex-col bg-muted/20">
       <Header />
       <main className="flex flex-1 flex-col items-center gap-8 p-4 md:p-8">
+
+        {/* Shareable Card */}
+        <div className="w-full max-w-4xl">
+            <Card ref={shareableRef} className="bg-background shadow-lg p-4 sm:p-8 relative">
+                 <div className="absolute top-4 right-4 sm:top-8 sm:right-8" id="share-button">
+                     <Button onClick={handleShare} disabled={isSharing} variant="outline" size="sm">
+                        <Share2 className="mr-2 h-4 w-4" />
+                        {isSharing ? "Sharing..." : "Share Progress"}
+                    </Button>
+                 </div>
+
+                <CardHeader className="text-center p-0 mb-6">
+                    <div className="flex flex-col items-center gap-2">
+                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-8 w-8 fill-primary">
+                           <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-88a8,8,0,0,1,8-8,56,56,0,0,1,56,56,8,8,0,0,1-16,0,40,40,0,0,0-40-40,8,8,0,0,1-8-8Z"></path>
+                         </svg>
+                        <CardTitle className="text-xl font-headline text-primary">Durood Community Counter</CardTitle>
+                    </div>
+                </CardHeader>
+
+                <CardContent className="p-0">
+                    <div className="flex items-center gap-4 border-y py-4">
+                        <Avatar className="h-16 w-16">
+                            <AvatarImage src={currentUser.profilePicture || `https://placehold.co/100x100.png`} alt={currentUser.name} data-ai-hint="profile avatar"/>
+                            <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <h2 className="text-2xl font-bold font-headline">{currentUser.name}</h2>
+                            <p className="text-muted-foreground">{currentDate}</p>
+                        </div>
+                    </div>
+
+                    <div className="my-6">
+                      <h3 className="text-center text-lg font-semibold mb-4 text-muted-foreground">My Daily Progress</h3>
+                      <UserStats userStats={currentUser.stats!} />
+                    </div>
+
+                </CardContent>
+            </Card>
+        </div>
+
+
         {/* User-focused section */}
-        <div ref={shareableRef} className="w-full max-w-4xl space-y-8 bg-background p-4 sm:p-8 rounded-lg">
-          <div className="flex justify-between items-start">
-            <div className="text-center sm:text-left text-muted-foreground">{currentDate}</div>
-            <Button onClick={handleShare} disabled={isSharing} variant="outline" size="sm">
-                <Share2 className="mr-2 h-4 w-4" />
-                {isSharing ? "Sharing..." : "Share Progress"}
-            </Button>
-          </div>
-          <UserStats userStats={currentUser.stats!} />
+        <div className="w-full max-w-4xl space-y-8">
           <ZikrCounter onDailyCountUpdate={handleDailyCountUpdate} onBatchCommit={handleBatchCommit} />
         </div>
 

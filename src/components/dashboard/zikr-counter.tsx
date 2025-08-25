@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -92,26 +93,29 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
         <CardTitle className="text-2xl font-headline">My Durood Count</CardTitle>
         <CardDescription>Press the button to increase your count. Your target today is {target.toLocaleString()}.</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col items-center justify-center gap-8">
-        <div 
-          className="relative text-7xl md:text-9xl font-bold font-headline text-primary"
-          style={{ textShadow: '2px 2px 8px hsl(var(--primary) / 0.2)' }}
-        >
-          {count.toLocaleString()}
-        </div>
+      <CardContent className="flex flex-col items-center justify-center gap-6">
         
-        <div className="w-full max-w-sm space-y-2">
-            <Progress value={progress} className="h-4" />
-            <div className="flex justify-between text-sm font-medium text-muted-foreground">
-                <span>{count.toLocaleString()}</span>
-                <span>{target.toLocaleString()}</span>
+        <div className="w-full max-w-sm space-y-4 text-center">
+            <div 
+              className="text-7xl md:text-8xl font-bold font-headline text-primary"
+              style={{ textShadow: '2px 2px 8px hsl(var(--primary) / 0.2)' }}
+            >
+              {count.toLocaleString()}
+            </div>
+            <div className="w-full max-w-xs mx-auto space-y-2">
+                <Progress value={progress} className="h-3" />
+                <div className="flex justify-between text-xs font-medium text-muted-foreground">
+                    <span>{count.toLocaleString()}</span>
+                    <span>{target.toLocaleString()}</span>
+                </div>
             </div>
         </div>
+
 
         <div className="flex items-center gap-4">
           <Button
             onClick={handleIncrement}
-            className="w-40 h-40 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-6xl font-bold shadow-2xl transform active:scale-95 transition-transform"
+            className="w-32 h-32 md:w-36 md:h-36 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-5xl font-bold shadow-2xl transform active:scale-95 transition-transform flex items-center justify-center"
             aria-label="Increment Zikr count"
           >
             +
@@ -119,8 +123,8 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
 
           <Dialog open={isTargetDialogOpen} onOpenChange={setIsTargetDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="icon" className="w-14 h-14 rounded-full shadow-lg">
-                <Target className="h-6 w-6" />
+              <Button variant="outline" size="icon" className="w-12 h-12 rounded-full shadow-lg">
+                <Target className="h-5 w-5" />
                 <span className="sr-only">Set Target</span>
               </Button>
             </DialogTrigger>
@@ -145,7 +149,7 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
             </DialogContent>
           </Dialog>
         </div>
-        <p className="text-sm text-muted-foreground">Collective count updates after every 25 recitations.</p>
+        <p className="text-sm text-muted-foreground">Collective count updates after every {BATCH_SIZE} recitations.</p>
       </CardContent>
 
       <Dialog open={isCongratsDialogOpen} onOpenChange={handleCongratsDialogClose}>

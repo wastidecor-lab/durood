@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -28,6 +29,7 @@ import type { User } from "@/lib/types";
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  remember: z.boolean().default(false).optional(),
 });
 
 export function LoginForm() {
@@ -39,6 +41,7 @@ export function LoginForm() {
     defaultValues: {
       email: "",
       password: "",
+      remember: false,
     },
   });
 
@@ -58,6 +61,13 @@ export function LoginForm() {
     
     // Simulate login
     localStorage.setItem("loggedInUser", values.email);
+
+    if (values.remember) {
+      localStorage.setItem("rememberedUser", values.email);
+    } else {
+      localStorage.removeItem("rememberedUser");
+    }
+
 
     toast({
       title: "Logged In",
@@ -98,6 +108,25 @@ export function LoginForm() {
                     <Input type="password" placeholder="••••••••" {...field} />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="remember"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Remember me
+                    </FormLabel>
+                  </div>
                 </FormItem>
               )}
             />

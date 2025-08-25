@@ -46,8 +46,9 @@ export function Header() {
 
 
   const handleLogout = () => {
-    // Simulate logout
+    // Clear all session-related storage
     localStorage.removeItem("loggedInUser");
+    localStorage.removeItem("rememberedUser");
     router.push("/");
   };
   

@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import type { User } from "@/lib/types";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -42,12 +43,26 @@ export function LoginForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    // Simulate finding user in localStorage
+    const users: User[] = JSON.parse(localStorage.getItem("users") || "[]");
+    const userExists = users.some(user => user.email === values.email);
+
+    if (!userExists) {
+       toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: "No account found with this email. Please sign up.",
+      });
+      return;
+    }
+    
+    // Simulate login
+    localStorage.setItem("loggedInUser", values.email);
+
     toast({
       title: "Logged In",
       description: "Redirecting to your dashboard...",
     });
-    // In a real app, you'd handle authentication here.
     router.push("/dashboard");
   }
 

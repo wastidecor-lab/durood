@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +25,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "lucide-react";
+import { User as UserIcon } from "lucide-react";
+import type { User } from "@/lib/types";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -38,6 +39,17 @@ export function CreateProfileForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [newUserEmail, setNewUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const email = localStorage.getItem("newUserEmail");
+    if (!email) {
+      // Redirect if user lands here without signing up first
+      router.push("/signup");
+    } else {
+      setNewUserEmail(email);
+    }
+  }, [router]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,20 +66,47 @@ export function CreateProfileForm() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result as string);
+        form.setValue("profilePicture", reader.result as string); // Store as data URI
       };
       reader.readAsDataURL(file);
-      form.setValue("profilePicture", file);
     }
   };
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    if (!newUserEmail) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Something went wrong. Please try signing up again.",
+      });
+      router.push("/signup");
+      return;
+    }
+
+    const newUser: User = {
+      email: newUserEmail,
+      name: values.name,
+      city: values.city,
+      whatsapp: values.whatsapp,
+      profilePicture: values.profilePicture || "",
+      stats: { today: 0, week: 0, allTime: 0 },
+    };
+
+    // Save the new user to the users array in localStorage
+    const users: User[] = JSON.parse(localStorage.getItem("users") || "[]");
+    users.push(newUser);
+    localStorage.setItem("users", JSON.stringify(users));
+
+    // "Log in" the new user
+    localStorage.setItem("loggedInUser", newUserEmail);
+    localStorage.removeItem("newUserEmail");
+
+
     toast({
       title: "Profile Created!",
       description: "Welcome to the community!",
     });
-    // In a real app, you'd save the profile data here.
     router.push("/dashboard");
   }
 
@@ -88,7 +127,7 @@ export function CreateProfileForm() {
                      <AvatarImage src={`https://placehold.co/100x100.png`} alt="placeholder" data-ai-hint="profile avatar"/>
                   )}
                   <AvatarFallback>
-                    <User className="h-12 w-12" />
+                    <UserIcon className="h-12 w-12" />
                   </AvatarFallback>
                 </Avatar>
                 <FormField
@@ -96,6 +135,7 @@ export function CreateProfileForm() {
                   name="profilePicture"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel>Profile Picture</FormLabel>
                       <FormControl>
                         <Input 
                           type="file" 

@@ -1,20 +1,14 @@
-import { generateDailyLeaderboard, type GenerateDailyLeaderboardInput } from '@/ai/flows/generate-daily-leaderboard';
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Crown, Medal, Award } from 'lucide-react';
+import type { User } from '@/lib/types';
 
-// Mock data representing users and their Zikr counts for the day
-const users: GenerateDailyLeaderboardInput['users'] = [
-  { name: 'Aisha Siddiqa', zikrCount: 1250 },
-  { name: 'Fatima Al-Fihri', zikrCount: 980 },
-  { name: 'Omar Khayyam', zikrCount: 1520 },
-  { name: 'Ibn Sina', zikrCount: 760 },
-  { name: 'Al-Khwarizmi', zikrCount: 1130 },
-  { name: 'Rumi', zikrCount: 890 },
-  { name: 'Zaynab al-Ghazali', zikrCount: 1840 },
-  { name: 'Ibn Rushd', zikrCount: 650 },
-];
+interface LeaderboardProps {
+  users: User[];
+}
 
 const rankIcons = [
   <Crown key="1" className="h-6 w-6 text-yellow-500" />,
@@ -22,12 +16,14 @@ const rankIcons = [
   <Award key="3" className="h-6 w-6 text-amber-700" />,
 ];
 
-export async function Leaderboard() {
-  const { leaderboard } = await generateDailyLeaderboard({ users });
+export function Leaderboard({ users }: LeaderboardProps) {
   
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
+
+  const sortedUsers = [...users].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
+  const top3Users = sortedUsers.slice(0, 3);
 
   return (
     <Card className="shadow-lg bg-accent/20">
@@ -45,19 +41,19 @@ export async function Leaderboard() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {leaderboard.map((user, index) => (
-              <TableRow key={user.name} className="font-medium">
+            {top3Users.map((user, index) => (
+              <TableRow key={user.email} className="font-medium">
                 <TableCell className="text-center">{rankIcons[index]}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar>
-                      <AvatarImage src={`https://placehold.co/100x100.png`} alt={user.name} data-ai-hint="leaderboard avatar"/>
+                      <AvatarImage src={user.profilePicture || `https://placehold.co/100x100.png`} alt={user.name} data-ai-hint="leaderboard avatar"/>
                       <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                     </Avatar>
                     <span>{user.name}</span>
                   </div>
                 </TableCell>
-                <TableCell className="text-right text-lg font-bold font-headline">{user.zikrCount.toLocaleString()}</TableCell>
+                <TableCell className="text-right text-lg font-bold font-headline">{(user.stats?.today ?? 0).toLocaleString()}</TableCell>
               </TableRow>
             ))}
           </TableBody>

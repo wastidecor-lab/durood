@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import type { User } from "@/lib/types";
+
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -42,12 +44,26 @@ export function SignupForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    // Simulate checking for existing user in localStorage
+    const users: User[] = JSON.parse(localStorage.getItem("users") || "[]");
+    const userExists = users.some(user => user.email === values.email);
+
+    if (userExists) {
+      toast({
+        variant: "destructive",
+        title: "Signup Failed",
+        description: "An account with this email already exists. Please log in.",
+      });
+      return;
+    }
+    
+    // Store the new user's email temporarily to link it on the profile creation page
+    localStorage.setItem("newUserEmail", values.email);
+
     toast({
       title: "Account Created",
       description: "Please complete your profile.",
     });
-    // In a real app, you'd handle user creation here.
     router.push("/create-profile");
   }
 

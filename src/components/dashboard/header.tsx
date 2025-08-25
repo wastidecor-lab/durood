@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CircleUser, LogOut, Moon, Sun, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,22 +13,40 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { User } from "@/lib/types";
+
+const defaultUser: User = {
+  name: "Anonymous",
+  email: "anonymous@example.com",
+  city: "Unknown",
+  whatsapp: "",
+  profilePicture: "",
+};
+
 
 export function Header() {
   const router = useRouter();
+  const [user, setUser] = useState<User>(defaultUser);
 
-  // Mock user data for display
-  const user = {
-    name: "Abdullah",
-    email: "abdullah@example.com",
-  };
+  useEffect(() => {
+    // Simulate loading user data
+    const loggedInUserEmail = localStorage.getItem("loggedInUser");
+    if (loggedInUserEmail) {
+      const users: User[] = JSON.parse(localStorage.getItem("users") || "[]");
+      const currentUser = users.find(u => u.email === loggedInUserEmail);
+      if (currentUser) {
+        setUser(currentUser);
+      }
+    }
+  }, []);
+
 
   const handleLogout = () => {
-    // In a real app, handle logout logic here
+    // Simulate logout
+    localStorage.removeItem("loggedInUser");
     router.push("/");
   };
   
-  // A simple way to get initials
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
@@ -49,7 +68,7 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={`https://placehold.co/100x100.png`} alt={user.name} data-ai-hint="profile avatar"/>
+                  <AvatarImage src={user.profilePicture || `https://placehold.co/100x100.png`} alt={user.name} data-ai-hint="profile avatar"/>
                   <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                 </Avatar>
               </Button>

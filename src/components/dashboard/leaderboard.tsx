@@ -15,9 +15,9 @@ interface LeaderboardProps {
 }
 
 const rankIcons = [
-  <Crown key="1" className="h-6 w-6 text-yellow-500" />,
-  <Medal key="2" className="h-6 w-6 text-slate-400" />,
-  <Award key="3" className="h-6 w-6 text-amber-700" />,
+  <Crown key="1" className="h-5 w-5 md:h-6 md:w-6 text-yellow-500" />,
+  <Medal key="2" className="h-5 w-5 md:h-6 md:w-6 text-slate-400" />,
+  <Award key="3" className="h-5 w-5 md:h-6 md:w-6 text-amber-700" />,
 ];
 
 export function Leaderboard({ users, nextUpdateTime }: LeaderboardProps) {
@@ -68,29 +68,29 @@ export function Leaderboard({ users, nextUpdateTime }: LeaderboardProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px] text-center">Rank</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>City</TableHead>
-                <TableHead className="text-right">Today's Count</TableHead>
+                <TableHead className="w-[40px] px-2 text-center">Rank</TableHead>
+                <TableHead className="px-2">User</TableHead>
+                <TableHead className="px-2 hidden sm:table-cell">City</TableHead>
+                <TableHead className="text-right px-2">Today's Count</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {displayUsers.map((user, index) => (
                 <TableRow key={user.email} className="font-medium">
-                  <TableCell className="text-center">
-                    {index < 3 ? rankIcons[index] : <span className="font-bold">{index + 1}</span>}
+                  <TableCell className="text-center px-2">
+                    {index < 3 ? rankIcons[index] : <span className="font-bold text-sm">{index + 1}</span>}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
+                  <TableCell className="px-2">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
                         <AvatarImage src={user.profilePicture || `https://placehold.co/100x100.png`} alt={user.name} data-ai-hint="leaderboard avatar"/>
-                        <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                        <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
                       </Avatar>
-                      <span>{user.name}</span>
+                      <span className="text-sm">{user.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell>{user.city}</TableCell>
-                  <TableCell className="text-right text-lg font-bold font-headline">{(user.stats?.today ?? 0).toLocaleString()}</TableCell>
+                  <TableCell className="px-2 hidden sm:table-cell text-sm">{user.city}</TableCell>
+                  <TableCell className="text-right px-2 text-base font-bold font-headline">{(user.stats?.today ?? 0).toLocaleString()}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

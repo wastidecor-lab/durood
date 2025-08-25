@@ -37,22 +37,24 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
       newUncommittedCount = 0; // Reset after committing.
     }
 
+    setUncommittedCount(newUncommittedCount);
+
+    // Haptic feedback for a more tangible experience
+    if (typeof window !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(50); // Short vibration for a single count
+    }
+
     // Check if the personal target is met AFTER committing any batches.
     if (newCount >= target) {
       if (newUncommittedCount > 0) {
           onBatchCommit(newUncommittedCount);
+          setUncommittedCount(0);
       }
-      setUncommittedCount(0); // Reset after committing.
       setIsCongratsDialogOpen(true);
       setShowConfetti(true);
-    } else {
-       // Otherwise, just update the local uncommitted count.
-      setUncommittedCount(newUncommittedCount);
-    }
-
-    // Haptic feedback for a more tangible experience
-    if (typeof window !== "undefined" && "vibrate" in navigator) {
-      navigator.vibrate(50);
+       if (typeof window !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate([100, 30, 100, 30, 100]); // Longer vibration pattern for success
+      }
     }
   };
 

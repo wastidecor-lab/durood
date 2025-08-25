@@ -8,7 +8,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Progress } from "@/components/ui/progress";
 import { Target, Trophy } from "lucide-react";
 import Confetti from "react-confetti";
-import { AdBanner } from '@/components/ads/ad-banner';
 
 interface ZikrCounterProps {
   onDailyCountUpdate: () => void;
@@ -142,9 +141,6 @@ export function ZikrCounter({ onDailyCountUpdate, onBatchCommit }: ZikrCounterPr
           </Dialog>
         </div>
         <p className="text-sm text-muted-foreground">Collective count updates after every {BATCH_SIZE} recitations.</p>
-        <div className="w-full max-w-sm pt-4">
-            <AdBanner />
-        </div>
       </CardContent>
 
       <Dialog open={isCongratsDialogOpen} onOpenChange={handleCongratsDialogClose}>

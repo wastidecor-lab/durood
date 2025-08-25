@@ -24,7 +24,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@/lib/types";
-import { AdBanner } from '@/components/ads/ad-banner';
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -105,9 +104,6 @@ export function LoginForm() {
             <Button type="submit" className="w-full font-bold">Log In</Button>
           </form>
         </Form>
-        <div className="mt-6">
-            <AdBanner />
-        </div>
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Don't have an account?{" "}
           <Link href="/signup" className="font-semibold text-primary hover:underline">

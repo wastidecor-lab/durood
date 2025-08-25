@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/dashboard/header";
 import { CollectiveCounter } from "@/components/dashboard/collective-counter";
@@ -10,8 +10,13 @@ import { UserStats } from "@/components/dashboard/user-stats";
 import { Leaderboard } from "@/components/dashboard/leaderboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { User } from "@/lib/types";
-import { isSameDay, isSameWeek, startOfWeek, addMinutes, differenceInSeconds } from 'date-fns';
+import { isSameDay, isSameWeek, addMinutes } from 'date-fns';
 import { CommunityStats } from "@/components/dashboard/community-stats";
+import html2canvas from "html2canvas";
+import { Button } from "@/components/ui/button";
+import { Share2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
 
 const defaultUser: User = {
   name: "Anonymous",
@@ -31,7 +36,9 @@ const LEADERBOARD_UPDATE_INTERVAL = 60 * 60 * 1000; // 60 minutes in millisecond
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [isSharing, setIsSharing] = useState(false);
   const [currentUser, setCurrentUser] = useState<User>(defaultUser);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [leaderboardUsers, setLeaderboardUsers] = useState<User[]>([]);
@@ -39,6 +46,9 @@ export default function DashboardPage() {
   const [currentDate, setCurrentDate] = useState("");
   const [usersActiveToday, setUsersActiveToday] = useState(0);
   const [nextLeaderboardUpdate, setNextLeaderboardUpdate] = useState<Date | null>(null);
+  
+  const shareableRef = useRef<HTMLDivElement>(null);
+
 
   const updateLeaderboard = useCallback((users: User[]) => {
     // Sort by today's count to determine rank
@@ -195,6 +205,39 @@ export default function DashboardPage() {
      }));
   }
 
+  const handleShare = async () => {
+    if (!shareableRef.current) return;
+    setIsSharing(true);
+    
+    try {
+        const canvas = await html2canvas(shareableRef.current, {
+            useCORS: true,
+            backgroundColor: null, // Use element's background
+        });
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = 'durood-progress.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast({
+            title: "Image Saved!",
+            description: "Your progress image has been saved to your downloads.",
+        });
+    } catch (error) {
+        console.error("Oops, something went wrong!", error);
+        toast({
+            variant: "destructive",
+            title: "Sharing Failed",
+            description: "Could not create the image. Please try again.",
+        });
+    } finally {
+        setIsSharing(false);
+    }
+  };
+
+
   if (loading) {
     return (
        <div className="flex min-h-screen w-full flex-col">
@@ -225,8 +268,14 @@ export default function DashboardPage() {
       <Header />
       <main className="flex flex-1 flex-col items-center gap-8 p-4 md:p-8">
         {/* User-focused section */}
-        <div className="w-full max-w-4xl space-y-8">
-          <div className="text-center text-muted-foreground">{currentDate}</div>
+        <div ref={shareableRef} className="w-full max-w-4xl space-y-8 bg-background p-4 sm:p-8 rounded-lg">
+          <div className="flex justify-between items-start">
+            <div className="text-center sm:text-left text-muted-foreground">{currentDate}</div>
+            <Button onClick={handleShare} disabled={isSharing} variant="outline" size="sm">
+                <Share2 className="mr-2 h-4 w-4" />
+                {isSharing ? "Sharing..." : "Share Progress"}
+            </Button>
+          </div>
           <UserStats userStats={currentUser.stats!} />
           <ZikrCounter onDailyCountUpdate={handleDailyCountUpdate} onBatchCommit={handleBatchCommit} />
         </div>

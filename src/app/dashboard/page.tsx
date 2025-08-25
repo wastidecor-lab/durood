@@ -35,6 +35,7 @@ export default function DashboardPage() {
   const [leaderboardUsers, setLeaderboardUsers] = useState<User[]>([]);
   const [collectiveAllTimeCount, setCollectiveAllTimeCount] = useState(0);
   const [currentDate, setCurrentDate] = useState("");
+  const [usersActiveToday, setUsersActiveToday] = useState(0);
 
   const updateLeaderboard = useCallback((users: User[]) => {
     // Sort by today's count to determine rank
@@ -90,6 +91,18 @@ export default function DashboardPage() {
     setAllUsers(storedUsers);
     setCurrentUser(user);
     setCollectiveAllTimeCount(storedCollectiveCount);
+
+    // Calculate users active today
+    const today = new Date();
+    const activeToday = storedUsers.filter(u => u.lastUpdated && isSameDay(today, new Date(u.lastUpdated))).length;
+    // Ensure the current user is counted if they are new or just became active
+    const currentUserIsActive = user.lastUpdated && isSameDay(today, new Date(user.lastUpdated));
+    if (!storedUsers.find(u => u.email === user.email) && currentUserIsActive) {
+      setUsersActiveToday(activeToday + 1);
+    } else {
+      setUsersActiveToday(activeToday);
+    }
+
     
     // Leaderboard logic - only update every 60 minutes
     const lastUpdated = localStorage.getItem('leaderboardLastUpdated');
@@ -116,6 +129,11 @@ export default function DashboardPage() {
       // Keep leaderboard state in sync with allUsers state
       const sortedUsers = [...updatedUsers].sort((a, b) => (b.stats?.today ?? 0) - (a.stats?.today ?? 0));
       setLeaderboardUsers(sortedUsers);
+
+      // Recalculate active users today
+      const today = new Date();
+      const activeToday = updatedUsers.filter(u => u.lastUpdated && isSameDay(today, new Date(u.lastUpdated))).length;
+      setUsersActiveToday(activeToday);
     }
   }, [allUsers, collectiveAllTimeCount, currentUser, loading]);
 
@@ -195,7 +213,7 @@ export default function DashboardPage() {
         {/* Community-focused section */}
         <div className="w-full max-w-4xl space-y-8 mt-8">
           <CollectiveCounter collectiveCount={collectiveAllTimeCount} />
-          <CommunityStats totalUsers={allUsers.length} liveUsers={allUsers.length} />
+          <CommunityStats totalUsers={allUsers.length} activeUsersToday={usersActiveToday} />
           <Leaderboard users={leaderboardUsers} />
         </div>
       </main>

@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { ExternalLink } from 'lucide-react';
 
@@ -8,11 +7,9 @@ export function AdBanner() {
       <a href="https://google.com" target="_blank" rel="noopener noreferrer" className="block hover:opacity-90 transition-opacity">
         <CardContent className="p-2">
             <div className="relative w-full">
-                 <Image
+                 <img
                     src="https://i.postimg.cc/LgPVXPHQ/wastiads.png"
                     alt="Advertisement for Wasti Interior Decor"
-                    width={1200}
-                    height={200}
                     className="rounded-md w-full h-auto"
                     data-ai-hint="advertisement banner"
                  />

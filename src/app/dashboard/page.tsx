@@ -50,15 +50,26 @@ export default function DashboardPage() {
   }, [router]);
 
   useEffect(() => {
-    // Save data to localStorage whenever it changes
+    // Save data to localStorage whenever it changes, but only if not loading.
     if (!loading) {
-      localStorage.setItem("users", JSON.stringify(allUsers));
+      // Find the currently logged-in user in the `allUsers` array and update them
+      const userIndex = allUsers.findIndex(u => u.email === currentUser.email);
+      if (userIndex !== -1) {
+        const updatedUsers = [...allUsers];
+        updatedUsers[userIndex] = currentUser;
+        localStorage.setItem("users", JSON.stringify(updatedUsers));
+      } else {
+         // If for some reason the user isn't in the array, just save the current state
+        localStorage.setItem("users", JSON.stringify(allUsers));
+      }
       localStorage.setItem("collectiveCount", collectiveCount.toString());
     }
-  }, [allUsers, collectiveCount, loading]);
+  }, [allUsers, collectiveCount, currentUser, loading]);
 
 
   const handleCountUpdate = (increment: number) => {
+    // This function handles the LIVE update for the current user's personal stats.
+    // It does NOT update the `allUsers` array for the leaderboard.
     setCurrentUser(prevUser => {
        const newStats = {
          today: (prevUser.stats?.today ?? 0) + increment,
@@ -67,15 +78,15 @@ export default function DashboardPage() {
        };
        return {...prevUser, stats: newStats};
     });
-    
-    // Update the user in the allUsers array as well
-    setAllUsers(prevAllUsers => 
-      prevAllUsers.map(u => u.email === currentUser.email ? { ...u, stats: currentUser.stats } : u)
-    );
   };
   
   const handleBatchUpdate = (batchSize: number) => {
+     // This function handles updates that should happen after a batch (e.g., 25 counts).
+     // It updates the collective count and the user's data in the `allUsers` array for the leaderboard.
      setCollectiveCount(prevCount => prevCount + batchSize);
+     setAllUsers(prevAllUsers => 
+      prevAllUsers.map(u => u.email === currentUser.email ? currentUser : u)
+    );
   }
 
   if (loading) {

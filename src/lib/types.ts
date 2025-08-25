@@ -9,4 +9,5 @@ export interface User {
     week: number;
     allTime: number;
   };
+  lastUpdated?: string; // ISO 8601 date string
 }

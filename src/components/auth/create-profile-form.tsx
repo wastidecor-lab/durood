@@ -91,6 +91,7 @@ export function CreateProfileForm() {
       whatsapp: values.whatsapp,
       profilePicture: values.profilePicture || "",
       stats: { today: 0, week: 0, allTime: 0 },
+      lastUpdated: new Date().toISOString(),
     };
 
     // Save the new user to the users array in localStorage

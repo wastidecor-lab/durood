@@ -8,10 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Progress } from "@/components/ui/progress";
 import { Target, Trophy } from "lucide-react";
 import Confetti from "react-confetti";
+import type { User } from "@/lib/types";
 
 interface ZikrCounterProps {
-  onCountUpdate: (newCount: number) => void;
-  onTargetReached: (lastCount: number) => void;
+  onCountUpdate: (newCount: number) => User;
+  onTargetReached: (batchSize: number, updatedUser: User) => void;
 }
 
 const BATCH_SIZE = 25;
@@ -30,18 +31,20 @@ export function ZikrCounter({ onCountUpdate, onTargetReached }: ZikrCounterProps
     let newUncommittedCount = uncommittedCount + 1;
 
     setCount(newCount);
-    onCountUpdate(1); // Update user's personal stats live
+    // onCountUpdate now returns the *updated* user object
+    const updatedUser = onCountUpdate(1); 
 
     // Check if the personal target is met.
     if (newCount >= target) {
       // If target is met, commit all uncommitted counts including the current one.
-      onTargetReached(newUncommittedCount);
+      // Pass the fully updated user object to the batch update function.
+      onTargetReached(newUncommittedCount, updatedUser);
       setUncommittedCount(0); // Reset after committing.
       setIsCongratsDialogOpen(true);
       setShowConfetti(true);
     } else if (newUncommittedCount >= BATCH_SIZE) {
       // If batch size is reached before the target, commit the batch.
-      onTargetReached(newUncommittedCount);
+      onTargetReached(newUncommittedCount, updatedUser);
       setUncommittedCount(0); // Reset after committing.
     } else {
       // Otherwise, just update the local uncommitted count.

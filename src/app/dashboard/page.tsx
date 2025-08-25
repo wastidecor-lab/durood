@@ -52,16 +52,8 @@ export default function DashboardPage() {
   useEffect(() => {
     // Save data to localStorage whenever it changes, but only if not loading.
     if (!loading) {
-      // Find the currently logged-in user in the `allUsers` array and update them
-      const userIndex = allUsers.findIndex(u => u.email === currentUser.email);
-      if (userIndex !== -1) {
-        const updatedUsers = [...allUsers];
-        updatedUsers[userIndex] = currentUser;
-        localStorage.setItem("users", JSON.stringify(updatedUsers));
-      } else {
-         // If for some reason the user isn't in the array, just save the current state
-        localStorage.setItem("users", JSON.stringify(allUsers));
-      }
+      const updatedUsers = allUsers.map(u => u.email === currentUser.email ? currentUser : u);
+      localStorage.setItem("users", JSON.stringify(updatedUsers));
       localStorage.setItem("collectiveCount", collectiveCount.toString());
     }
   }, [allUsers, collectiveCount, currentUser, loading]);
@@ -69,23 +61,25 @@ export default function DashboardPage() {
 
   const handleCountUpdate = (increment: number) => {
     // This function handles the LIVE update for the current user's personal stats.
-    // It does NOT update the `allUsers` array for the leaderboard.
-    setCurrentUser(prevUser => {
-       const newStats = {
-         today: (prevUser.stats?.today ?? 0) + increment,
-         week: (prevUser.stats?.week ?? 0) + increment,
-         allTime: (prevUser.stats?.allTime ?? 0) + increment,
-       };
-       return {...prevUser, stats: newStats};
-    });
+    // It directly returns the newly updated user object.
+    const updatedUser = {
+      ...currentUser,
+      stats: {
+        today: (currentUser.stats?.today ?? 0) + increment,
+        week: (currentUser.stats?.week ?? 0) + increment,
+        allTime: (currentUser.stats?.allTime ?? 0) + increment,
+      }
+    };
+    setCurrentUser(updatedUser);
+    return updatedUser;
   };
   
-  const handleBatchUpdate = (batchSize: number) => {
-     // This function handles updates that should happen after a batch (e.g., 25 counts).
-     // It updates the collective count and the user's data in the `allUsers` array for the leaderboard.
+  const handleBatchUpdate = (batchSize: number, updatedUser: User) => {
+     // This function handles updates that should happen after a batch (e.g., 25 counts or target reached).
+     // It uses the most up-to-date user object passed from the counter.
      setCollectiveCount(prevCount => prevCount + batchSize);
      setAllUsers(prevAllUsers => 
-      prevAllUsers.map(u => u.email === currentUser.email ? currentUser : u)
+      prevAllUsers.map(u => u.email === updatedUser.email ? updatedUser : u)
     );
   }
 

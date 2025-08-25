@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -216,13 +217,12 @@ export default function DashboardPage() {
     if (!shareableRef.current) return;
     setIsSharing(true);
 
-    const buttonElement = document.getElementById("share-button");
-    if (buttonElement) buttonElement.style.visibility = 'hidden';
-
     // Get the computed background color
     const computedBgColor = window.getComputedStyle(document.body).backgroundColor;
 
     try {
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         const canvas = await html2canvas(shareableRef.current, {
             useCORS: true,
             backgroundColor: computedBgColor, // Use the computed color
@@ -247,7 +247,6 @@ export default function DashboardPage() {
             description: "Could not create the image. Please try again.",
         });
     } finally {
-        if (buttonElement) buttonElement.style.visibility = 'visible';
         setIsSharing(false);
     }
   };
@@ -286,7 +285,7 @@ export default function DashboardPage() {
         {/* Shareable Card */}
         <div className="w-full max-w-4xl">
             <Card ref={shareableRef} className="bg-background shadow-lg p-4 sm:p-8 relative">
-                 <div className="absolute top-4 right-4 sm:top-8 sm:right-8" id="share-button">
+                 <div className="absolute top-4 right-4 sm:top-8 sm:right-8" style={{ visibility: isSharing ? 'hidden' : 'visible' }}>
                      <Button onClick={handleShare} disabled={isSharing} variant="outline" size="sm">
                         <Share2 className="mr-2 h-4 w-4" />
                         {isSharing ? "Sharing..." : "Share Progress"}
@@ -318,6 +317,13 @@ export default function DashboardPage() {
                       <h3 className="text-center text-lg font-semibold mb-4 text-muted-foreground">My Daily Progress</h3>
                       <UserStats userStats={currentUser.stats!} />
                     </div>
+                    
+                    {isSharing && (
+                        <div className="text-center mt-8 pt-6 border-t-2 border-dashed">
+                            <p className="text-lg font-semibold text-primary">Masha'Allah! May your efforts be accepted.</p>
+                            <p className="font-urdu text-2xl mt-2 text-primary" dir="rtl">ماشاءالله! اللہ آپ کی کوششوں کو قبول فرمائے۔</p>
+                        </div>
+                    )}
 
                 </CardContent>
             </Card>

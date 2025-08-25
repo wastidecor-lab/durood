@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Space_Grotesk } from 'next/font/google';
+import { Inter, Space_Grotesk, Noto_Nastaliq_Urdu } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,12 @@ const fontHeadline = Space_Grotesk({
   subsets: ['latin'],
   variable: '--font-headline',
 });
+
+const fontUrdu = Noto_Nastaliq_Urdu({
+  subsets: ['arabic'],
+  variable: '--font-urdu',
+  weight: ['400', '700'],
+})
 
 
 export const metadata: Metadata = {
@@ -31,7 +37,8 @@ export default function RootLayout({
         className={cn(
           "min-h-screen bg-background font-body antialiased",
           fontBody.variable,
-          fontHeadline.variable
+          fontHeadline.variable,
+          fontUrdu.variable
         )}
       >
         {children}

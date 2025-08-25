@@ -118,6 +118,22 @@ export default function DashboardPage() {
     setLoading(false);
   }, [router, updateLeaderboard]);
 
+  // This effect will run a timer to check if the leaderboard needs updating
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const lastUpdatedStr = localStorage.getItem('leaderboardLastUpdated');
+      const lastUpdated = lastUpdatedStr ? new Date(lastUpdatedStr) : null;
+      if (lastUpdated && (new Date().getTime() - lastUpdated.getTime() > LEADERBOARD_UPDATE_INTERVAL)) {
+        // The time has passed, let's update.
+        const storedUsers: User[] = JSON.parse(localStorage.getItem("users") || "[]");
+        updateLeaderboard(storedUsers);
+      }
+    }, 60 * 1000); // Check every minute
+
+    return () => clearInterval(interval); // Cleanup on component unmount
+  }, [updateLeaderboard]);
+
+
   useEffect(() => {
     if (!loading) {
       // Find the latest version of the current user, or add them if they are new.
@@ -152,7 +168,7 @@ export default function DashboardPage() {
         lastUpdated: new Date().toISOString(),
       };
       
-      // Update allUsers in real-time for immediate personal feedback, but leaderboard uses its own state
+      // Update allUsers in real-time for immediate personal feedback
       setAllUsers(prevAllUsers => {
           const userExists = prevAllUsers.some(u => u.email === updatedUser.email);
           if (userExists) {
@@ -177,13 +193,6 @@ export default function DashboardPage() {
          allTime: (prevUser.stats?.allTime ?? 0) + batchSize,
        },
      }));
-     
-     // Leaderboard update check
-     const lastUpdatedStr = localStorage.getItem('leaderboardLastUpdated');
-     const lastUpdated = lastUpdatedStr ? new Date(lastUpdatedStr) : null;
-     if (!lastUpdated || (new Date().getTime() - lastUpdated.getTime() > LEADERBOARD_UPDATE_INTERVAL)) {
-        updateLeaderboard(allUsers);
-     }
   }
 
   if (loading) {

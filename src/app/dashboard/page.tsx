@@ -378,7 +378,7 @@ export default function DashboardPage() {
         </div>
       </main>
       <footer className="py-6 px-4 text-center text-sm text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} Durood Community Counter. All rights reserved.</p>
+        <p>&copy; 2025 Prof. Dr. Syed Zircon Shah. All rights reserved.</p>
       </footer>
       
       {/* Hidden Invitation Card for html2canvas */}
@@ -422,3 +422,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
